@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -13,9 +14,15 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::select('id', 'title', 'slug', 'thumbnail', 'price')
-            ->withAvg('feedbacks', 'rating')
-            ->get();
+        $courses = Course::all();
+
+        foreach($courses as $course){
+            $learningPath = $course->learningPath;
+            if($learningPath){
+                $course->path_title = $learningPath->title;
+                unset($course->learningPath);
+            }
+        }
 
         return response()->json(['data' => $courses], 200);
     }
@@ -32,18 +39,22 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
         $validator = Validator::make($request->all(), [
             'learning_path_id' => 'nullable|int',
             'teacher_id' => 'nullable|int',
             'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'price' => 'required|int',
-            'status' => 'required|string|in:Drafted,Published'
+            'price' => 'required|int'
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()], 400);
+            return response()->json(['error' => $validator->errors()]);
         }
 
         $field = $request->all();
@@ -51,16 +62,28 @@ class CourseController extends Controller
         if($request->hasFile('thumbnail_file')){
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
-                'public/courses',
-                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension()
+                'courses',
+                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $field['thumbnail'] = $thumbnailPath;
         }
 
-        Course::create($field);
+        $course = Course::create($field);
+        if($course && $course->learning_path_id){
+            $learningPath = $course->learningPath;
+            $learningPath->courses += 1;
+            $learningPath->save();
 
-        return response()->json(['msg' => 'Course created successfully.'], 201);
+            $course->order = $learningPath->courses;
+            $course->save();
+        }
+
+        if(!$course){
+            return response()->json(['status' => false, 'message' => 'Gagal menambahkan Course.']);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Course.']);
     }
 
     /**
@@ -82,6 +105,11 @@ class CourseController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
         $course = Course::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'learning_path_id' => 'nullable|int',
@@ -89,47 +117,62 @@ class CourseController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'price' => 'required|int',
-            'status' => 'required|string|in:Drafted,Published'
+            'price' => 'required|int'
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()], 400);
+            return response()->json(['error' => $validator->errors()]);
         }
 
         $course->slug = null;
         $course->update($request->all());
 
         if($request->hasFile('thumbnail_file')){
-            if(Storage::exists($course->thumbnail) && $course->thumbnail !== 'public/courses/thumbnail.png'){
-                Storage::delete($course->thumbnail);
+            if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
+                Storage::delete('public/' . $course->thumbnail);
             }
 
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
-                'public/courses',
-                $request->input('title') . '_' . time() . '.' . $thumbnail->getClientOriginalExtension()
+                'courses',
+                $request->input('title') . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(). 'public'
             );
 
             $course->update(['thumbnail' => $thumbnailPath]);
         }
 
-        return response()->json(['msg' => 'Course updated successfully.'], 201);
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah Course.']);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $course = Course::findOrFail($id);
-
-        if(Storage::exists($course->thumbnail) && $course->thumbnail !== 'public/courses/thumbnail.png'){
-            Storage::delete($course->thumbnail);
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
+        $course = Course::findOrFail($request->input('id'));
         $course->delete();
 
-        return response()->json(['msg' => 'Course deleted successfully.'], 200);
+        if($course->learning_path_id){
+            $learningPath = $course->learningPath;
+            $learningPath->courses -= 1;
+            $learningPath->save();
+
+            $courses = $learningPath->courses()->orderBy('order')->get();
+            foreach ($courses as $index => $course){
+                $course->order = $index + 1;
+                $course->save();
+            }
+        }
+
+        if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
+            Storage::delete('public/' . $course->thumbnail);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Course.'], 200);
     }
 }

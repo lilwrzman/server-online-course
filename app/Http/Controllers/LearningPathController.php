@@ -44,8 +44,8 @@ class LearningPathController extends Controller
         if($request->hasFile('thumbnail_file')){
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
-                '/public/learning-paths',
-                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension()
+                'learning-paths',
+                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $field['thumbnail'] = $thumbnailPath;
@@ -91,17 +91,17 @@ class LearningPathController extends Controller
         $path->update($request->all());
 
         if($request->hasFile('thumbnail_file')){
-            if(Storage::exists($path->thumbnail) && $path->thumbnail !== '/public/learning-paths/thumbnail.png'){
-                Storage::delete($path->thumbnail);
+            if(Storage::exists('public/' . $path->thumbnail) && !str_contains($path->thumbnail, 'thumbnail.png')){
+                Storage::delete('public/' . $path->thumbnail);
             }
 
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
-                '/public/learning-paths',
-                Str::slug($path->title) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension()
+                'learning-paths',
+                Str::slug($path->title) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
-            $path->update(['thumbnail' => $thumbnailPath]);
+            $path->update(['thumbnail' =>  $thumbnailPath]);
         }
 
         return response()->json(['status' => true, 'message' => 'Berhasil mengedit Learning Path.', 'data' => $path], 201);
@@ -119,12 +119,12 @@ class LearningPathController extends Controller
 
         $path = LearningPath::findOrFail($request->input('id'));
 
-        if(Storage::exists($path->thumbnail) && $path->thumbnail !== '/public/learning-paths/default.png'){
-            Storage::delete($path->thumbnail);
+        if(Storage::exists('public/' . $path->thumbnail) && !str_contains($path->thumbnail, 'thumbnail.png')){
+            Storage::delete('public/' . $path->thumbnail);
         }
 
         $path->delete();
 
-        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Learning Path.', 'data' => $path], 200);
+        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Learning Path.'], 200);
     }
 }
