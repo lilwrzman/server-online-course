@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->longText('content');
-            $table->string('thumbnail')->nullable()->default('public/events/thumbnail.png');
+            $table->string('thumbnail')->nullable()->default('/storage/events/thumbnail.png');
             $table->string('slug')->unique();
             $table->integer('quota');
             $table->enum('type', ['Online', 'Offline']);

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->longText('content');
             $table->string('slug')->unique();
-            $table->string('thumbnail')->nullable()->default('public/blogs/thumbnail.png');
+            $table->string('thumbnail')->nullable()->default('/storage/blogs/thumbnail.png');
             $table->timestamps();
 
             $table->foreign('author_id')->references('id')
