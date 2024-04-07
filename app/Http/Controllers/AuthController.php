@@ -126,17 +126,6 @@ class AuthController extends Controller
         ]);
     }
 
-    public function profile()
-    {
-        $user = Auth::user();
-        $user->makeHidden(['id', 'verification_token', 'email_verified_at', 'updated_at', 'corporate_id']);
-
-        return response()->json([
-            'status' => true,
-            'data' => $user
-        ]);
-    }
-
     public function logout(Request $request)
     {
         $user = Auth::user();
