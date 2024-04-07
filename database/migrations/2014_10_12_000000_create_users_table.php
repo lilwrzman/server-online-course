@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('role', ['Superadmin', 'Teacher', 'Corporate Admin','Student']);
             $table->unsignedBigInteger('corporate_id')->nullable();
             $table->json('info')->nullable();
-            $table->string('avatar')->nullable()->default('/storage/avatars/default.png');
+            $table->string('avatar')->nullable()->default('avatars/default.png');
             $table->enum('status', ['Active', 'Non-Active', 'Pending']);
             $table->string('verification_token')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();

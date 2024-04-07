@@ -15,16 +15,16 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('learning_path_id')->nullable();
             $table->unsignedBigInteger('teacher_id')->nullable();
-            $table->string('title')->unique();
+            $table->string('title');
             $table->longText('description');
             $table->string('slug')->unique();
-            $table->string('thumbnail')->nullable()->default('/storage/courses/thumbnail.png');
+            $table->string('thumbnail')->nullable()->default('courses/thumbnail.png');
             $table->integer('price');
             $table->enum('status', ['Drafted', 'Published'])->nullable()->default('Drafted');
-            $table->integer('order');
-            $table->decimal('rating', 3, 1);
-            $table->integer('items');
-            $table->integer('enrolled');
+            $table->integer('order')->nullable()->default(0);
+            $table->decimal('rating', 3, 1)->nullable()->default(0);
+            $table->integer('items')->nullable()->default(0);
+            $table->integer('enrolled')->nullable()->default(0);
             $table->timestamps();
 
             $table->foreign('learning_path_id')->references('id')

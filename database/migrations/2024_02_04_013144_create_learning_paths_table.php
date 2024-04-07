@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->longText('description');
             $table->string('slug')->unique();
-            $table->string('thumbnail')->nullable()->default('/storage/learning-paths/thumbnail.png');
+            $table->string('thumbnail')->nullable()->default('learning-paths/thumbnail.png');
             $table->integer('courses')->nullable()->default(0);
             $table->timestamps();
         });
