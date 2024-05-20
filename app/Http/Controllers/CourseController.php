@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -27,6 +28,13 @@ class CourseController extends Controller
         return response()->json(['data' => $courses], 200);
     }
 
+    public function lone_course()
+    {
+        $courses = Course::whereNull('learning_path_id')->get();
+
+        return response()->json(['data' => $courses], 200);
+    }
+
     public function published()
     {
         $course = Course::where('status', 'Published')->get();
@@ -45,12 +53,17 @@ class CourseController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'learning_path_id' => 'nullable|int',
-            'teacher_id' => 'nullable|int',
+            'teacher_id' => 'required|int',
             'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'price' => 'required|int'
+        ], [
+            'teacher_id.required' => 'Silahkan pilih salah satu pemateri.',
+            'title.required' => 'Harap masukkan judul.',
+            'desciption.required' => 'Harap masukkan deskripsi.',
+            'price.required' => 'Harap tentukan harga jual materi.',
+            'price.int' => 'Harap masukkan harga dalam bentuk angka.'
         ]);
 
         if($validator->fails()){
@@ -63,21 +76,13 @@ class CourseController extends Controller
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
                 'courses',
-                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
+                uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $field['thumbnail'] = $thumbnailPath;
         }
 
         $course = Course::create($field);
-        if($course && $course->learning_path_id){
-            $learningPath = $course->learningPath;
-            $learningPath->courses += 1;
-            $learningPath->save();
-
-            $course->order = $learningPath->courses;
-            $course->save();
-        }
 
         if(!$course){
             return response()->json(['status' => false, 'message' => 'Gagal menambahkan Course.']);
@@ -89,13 +94,16 @@ class CourseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Request $request, $slug)
     {
-        $course = Course::findOrFail($id);
-        $course['silabus'] = [];
-        $course['review_and_rating'] = [];
-        $course['sum_enroll'] = 0;
-        $course['avg_rating'] = 0;
+        $course = Course::where('slug', '=', $slug)->with('teacher')->firstOrFail();
+
+        if($request->input('with_teachers') == 'yes'){
+            $course['teachers'] = User::where('id', '!=', $course->teacher_id)
+                ->where('role', '=', 'Teacher')->get();
+        }
+
+        unset($course->teacher_id);
 
         return response()->json(['data' => $course], 200);
     }
@@ -103,31 +111,53 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         $user = Auth::user();
         if(!$user->role === 'Superadmin'){
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
-        $course = Course::findOrFail($id);
-        $validator = Validator::make($request->all(), [
-            'learning_path_id' => 'nullable|int',
-            'teacher_id' => 'nullable|int',
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'price' => 'required|int'
-        ]);
+        $course = Course::findOrFail($request->input('id'));
+        $section = $request->input('section');
 
-        if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
-        }
+        if($section == 'General'){
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|string',
+                'description' => 'required|string'
+            ], [
+                'title.required' => 'Harap masukkan judul.',
+                'title.string' => 'Harap masukkan judul dalam bentuk kombinasi huruf maupun angka!',
+                'desciption.required' => 'Harap masukkan deskripsi.',
+                'description.string' => 'Harap masukkan deskripsi dalam bentuk kombinasi huruf maupun angka!'
+            ]);
 
-        $course->slug = null;
-        $course->update($request->all());
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
 
-        if($request->hasFile('thumbnail_file')){
+            $course->slug = null;
+            $course->update([
+                'title' => $request->input('title'),
+                'description' => $request->input('description')
+            ]);
+
+            return response()->json(['status' => true, 'message' => 'Data umum Materi berhasil diubah!', 'data' => $course], 201);
+
+        }else if($section == 'Thumbnail'){
+            $validator = Validator::make($request->all(), [
+                'thumbnail_file' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+            ], [
+                'thumbnail_file.required' => 'Harap unggah gambar!',
+                'thumbnail_file.images' => 'File harus berupa gambar!',
+                'thumbnail_file.mimes' => 'File harus memiliki format JPEG, PNG, atau JPG!',
+                'thumbnail_file.max' => 'Ukuran file tidak boleh melebihi 2 Mb!'
+            ]);
+
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
+
             if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
                 Storage::delete('public/' . $course->thumbnail);
             }
@@ -135,13 +165,43 @@ class CourseController extends Controller
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
                 'courses',
-                $request->input('title') . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(). 'public'
+                uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $course->update(['thumbnail' => $thumbnailPath]);
-        }
 
-        return response()->json(['status' => true, 'message' => 'Berhasil mengubah Course.']);
+            return response()->json(['status' => true, 'message' => 'Thumbnail Materi berhasil diubah!', 'data' => $course], 201);
+
+        }else if($section == 'Teacher'){
+            $validator = Validator::make($request->all(), [
+                'teacher_id' => 'required|int'
+            ], [
+                'teacher_id.required' => 'Harap pilih pemateri!',
+            ]);
+
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
+
+            $course->teacher_id = $request->input('teacher_id');
+            $course->save();
+
+            return response()->json(['status' => true, 'message' => 'Pemateri berhasil diubah!', 'data' => $course], 201);
+
+        }else if($section == 'Price'){
+            $validator = Validator::make($request->all(), [
+                'price' => 'required|int'
+            ]);
+
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
+
+            $course->price = $request->input('price');
+            $course->save();
+
+            return response()->json(['status' => true, 'message' => 'Harga Materi berhasil diubah!', 'data' => $course], 201);
+        }
     }
 
     /**
@@ -155,23 +215,26 @@ class CourseController extends Controller
         }
 
         $course = Course::findOrFail($request->input('id'));
-        $course->delete();
+
+        // dd($course->toArray());
+
+        if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
+            Storage::delete('public/' . $course->thumbnail);
+        }
 
         if($course->learning_path_id){
             $learningPath = $course->learningPath;
             $learningPath->courses -= 1;
             $learningPath->save();
 
-            $courses = $learningPath->courses()->orderBy('order')->get();
-            foreach ($courses as $index => $course){
-                $course->order = $index + 1;
-                $course->save();
+            $courses = $learningPath->courses()->whereNot('id', $course->id)->orderBy('order')->get();
+            foreach ($courses as $index => $item){
+                $item->order = $index + 1;
+                $item->save();
             }
         }
 
-        if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
-            Storage::delete('public/' . $course->thumbnail);
-        }
+        $course->delete();
 
         return response()->json(['status' => true, 'message' => 'Berhasil menghapus Course.'], 200);
     }
