@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\LearningPath;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,6 @@ class LearningPathController extends Controller
     public function index()
     {
         $paths = LearningPath::all();
-        $paths->makeHidden(['created_at', 'updated_at']);
 
         return response()->json(['data' => $paths], 200);
     }
@@ -33,6 +33,14 @@ class LearningPathController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'title.required' => 'Harap masukkan judul!',
+            'title.string' => 'Harap masukkan judul dalam bentuk kombinasi huruf maupun angka!',
+            'description.required' => 'Harap masukkan deskripsi!',
+            'description.string' => 'Harap masukkan deskripsi dalam bentuk kombinasi huruf maupun angka!',
+            'thumbnail_file.images' => 'File harus berupa gambar!',
+            'thumbnail_file.mimes' => 'File harus memiliki format JPEG, PNG, atau JPG!',
+            'thumbnail_file.max' => 'Ukuran file tidak boleh melebihi 2 Mb!'
         ]);
 
         if($validator->fails()){
@@ -45,23 +53,46 @@ class LearningPathController extends Controller
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
                 'learning-paths',
-                Str::slug($request->input('title')) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
+                uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $field['thumbnail'] = $thumbnailPath;
         }
 
-        LearningPath::create($field);
+        $path = LearningPath::create($field);
 
-        return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Learning Path.'], 201);
+        if(!$path){
+            return response()->json(['status' => false, 'message' => 'Gagal menambahkan Alur Belajar.']);
+        }
+
+        if($request->input('courses')){
+            $selected_course_ids = explode(',', $request->input('courses'));
+            $last_order = Course::where('learning_path_id', $path->id)->max('order') ?? 0;
+
+            foreach ($selected_course_ids as $increment => $course_id) {
+                Course::where('id', $course_id)->update([
+                    'learning_path_id' => $path->id,
+                    'order' => $last_order + $increment + 1
+                ]);
+            }
+
+            $path->courses = count($selected_course_ids);
+            $path->save();
+        }
+
+        return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Alur Belajar.', 'path' => $path], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
-        $path = LearningPath::where('slug', '=', $slug)->firstOrFail();
+        $path = LearningPath::with('courses')->where('slug', '=', $slug)->firstOrFail();
+
+        if($request->input('with_courses') == 'yes'){
+            $path['lone_course'] = Course::whereNull('learning_path_id')->get();
+        }
 
         return response()->json(['data' => $path], 200);
     }
@@ -77,20 +108,45 @@ class LearningPathController extends Controller
         }
 
         $path = LearningPath::findOrFail($request->input('id'));
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+        $section = $request->input('section');
 
-        if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
-        }
+        if($section == 'General'){
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|string',
+                'description' => 'required|string'
+            ], [
+                'title.required' => 'Harap masukkan judul!',
+                'title.string' => 'Harap masukkan judul dalam bentuk kombinasi huruf maupun angka!',
+                'description.required' => 'Harap masukkan deskripsi!',
+                'description.string' => 'Harap masukkan deskripsi dalam bentuk kombinasi huruf maupun angka!'
+            ]);
 
-        $path->slug = null;
-        $path->update($request->all());
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
 
-        if($request->hasFile('thumbnail_file')){
+            $path->slug = null;
+            $path->update([
+                'title' => $request->input('title'),
+                'description' => $request->input('description')
+            ]);
+
+            return response()->json(['status' => true, 'message' => 'Data umum Alur Belajar berhasil diubah!', 'data' => $path], 201);
+
+        }else if($section == 'Thumbnail'){
+            $validator = Validator::make($request->all(), [
+                'thumbnail_file' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            ], [
+                'thumbnail_file.required' => 'Harap unggah gambar!',
+                'thumbnail_file.images' => 'File harus berupa gambar!',
+                'thumbnail_file.mimes' => 'File harus memiliki format JPEG, PNG, atau JPG!',
+                'thumbnail_file.max' => 'Ukuran file tidak boleh melebihi 2 Mb!'
+            ]);
+
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
+
             if(Storage::exists('public/' . $path->thumbnail) && !str_contains($path->thumbnail, 'thumbnail.png')){
                 Storage::delete('public/' . $path->thumbnail);
             }
@@ -98,13 +154,43 @@ class LearningPathController extends Controller
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
                 'learning-paths',
-                Str::slug($path->title) . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
+                uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $path->update(['thumbnail' =>  $thumbnailPath]);
-        }
 
-        return response()->json(['status' => true, 'message' => 'Berhasil mengedit Learning Path.', 'data' => $path], 201);
+            return response()->json(['status' => true, 'message' => 'Thumbnail Alur Belajar berhasil diubah!', 'data' => $path], 201);
+
+        }else if($section == 'Course'){
+            $validator = Validator::make($request->all(), [
+                'selected_course' => 'required',
+            ], [
+                'thumbnail_file.required' => 'Harap pilih materi yang ingin ditambahkan!',
+            ]);
+
+            if($validator->fails()){
+                return response()->json(['error' => $validator->errors()]);
+            }
+
+            $selected_course_ids = explode(',', $request->input('selected_course'));
+            $last_order = Course::where('learning_path_id', $path->id)->max('order') ?? 0;
+
+            foreach ($selected_course_ids as $increment => $course_id) {
+                Course::where('id', $course_id)->update([
+                    'learning_path_id' => $path->id,
+                    'order' => $last_order + $increment + 1
+                ]);
+            }
+
+            $total_courses = Course::where('learning_path_id', $path->id)->count();
+            $path->courses = $total_courses;
+            $path->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Materi yang dipilih gagal ditambahkan ke Alur Belajar!',
+                'data' => $path], 201);
+        }
     }
 
     /**
@@ -123,8 +209,31 @@ class LearningPathController extends Controller
             Storage::delete('public/' . $path->thumbnail);
         }
 
+        Course::where('learning_path_id', '=', $path->id)->update([
+            'learning_path_id' => null,
+            'order' => 0
+        ]);
         $path->delete();
 
-        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Learning Path.'], 200);
+        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Alur Belajar.'], 200);
+    }
+
+    public function remove_course(Request $request)
+    {
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $path = LearningPath::findOrFail($request->input('learning_path_id'));
+        $path->courses = $path->courses > 0 ?  $path->courses - 1 : 0;
+        $path->save();
+
+        $course = Course::findOrFail($request->input('course_id'));
+        $course->learning_path_id = null;
+        $course->order = 0;
+        $course->save();
+
+        return response()->json(['status' => true, 'message' => 'Berhasil menghapus materi dari Alur Belajar'], 200);
     }
 }
