@@ -65,6 +65,14 @@ class LearningPathController extends Controller
             return response()->json(['status' => false, 'message' => 'Gagal menambahkan Alur Belajar.']);
         }
 
+        $existingColors = LearningPath::pluck('color')->filter()->all();
+
+        do {
+            $color = $this->generatePastelColor();
+        } while (!$this->isColorUniqueAndDifferent($color, $existingColors));
+
+        $path->color = $color;
+
         if($request->input('courses')){
             $selected_course_ids = explode(',', $request->input('courses'));
             $last_order = Course::where('learning_path_id', $path->id)->max('order') ?? 0;
@@ -77,8 +85,9 @@ class LearningPathController extends Controller
             }
 
             $path->courses = count($selected_course_ids);
-            $path->save();
         }
+
+        $path->save();
 
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Alur Belajar.', 'path' => $path], 201);
     }
@@ -235,5 +244,37 @@ class LearningPathController extends Controller
         $course->save();
 
         return response()->json(['status' => true, 'message' => 'Berhasil menghapus materi dari Alur Belajar'], 200);
+    }
+
+    private function colorDistance($color1, $color2)
+    {
+        $r1 = hexdec(substr($color1, 1, 2));
+        $g1 = hexdec(substr($color1, 3, 2));
+        $b1 = hexdec(substr($color1, 5, 2));
+
+        $r2 = hexdec(substr($color2, 1, 2));
+        $g2 = hexdec(substr($color2, 3, 2));
+        $b2 = hexdec(substr($color2, 5, 2));
+
+        return sqrt(pow($r2 - $r1, 2) + pow($g2 - $g1, 2) + pow($b2 - $b1, 2));
+    }
+
+    private function isColorUniqueAndDifferent($newColor, $existingColors, $minDistance = 50)
+    {
+        foreach ($existingColors as $color) {
+            if ($newColor == $color || $this->colorDistance($newColor, $color) < $minDistance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function generatePastelColor()
+    {
+        $red = rand(100, 200);
+        $green = rand(100, 200);
+        $blue = rand(100, 200);
+
+        return sprintf("#%02X%02X%02X", $red, $green, $blue);
     }
 }

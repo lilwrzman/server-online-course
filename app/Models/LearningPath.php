@@ -10,7 +10,7 @@ class LearningPath extends Model
 {
     use HasFactory, Sluggable;
 
-    protected $fillable = ['title', 'description', 'slug', 'thumbnail'];
+    protected $fillable = ['title', 'description', 'slug', 'thumbnail', 'color'];
 
     public function sluggable(): array
     {

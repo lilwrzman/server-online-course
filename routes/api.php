@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\UserController;
@@ -42,15 +43,16 @@ Route::group([
 // End of Endpoint: Authentication
 
 
-// Endpoint: Account Management 🟨
+// Endpoint: Account Management 🟩
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
     Route::get('/account/get', [UserController::class, 'index']); // 🟩
     Route::get('/account/{id}', [UserController::class, 'detail']); // 🟩
-    Route::post('/account/add', [UserController::class, 'create']); // 🟨
-    Route::post('/account/update', [UserController::class, 'update']); // 🟨
-    Route::post('/account/delete', [UserController::class, 'delete']); // 🟨
+    Route::post('/account/add', [UserController::class, 'create']); // 🟩
+    Route::post('/account/update', [UserController::class, 'update']); // 🟩
+    Route::post('/account/update/avatar', [UserController::class, 'update_avatar']); // 🟩
+    Route::post('/account/delete', [UserController::class, 'delete']); // 🟩
 });
 // End of Endpoint: Account Management
 
@@ -62,27 +64,37 @@ Route::get('/learning-path/get/{slug}', [LearningPathController::class, 'show'])
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::post('/learning-path/add', [LearningPathController::class, 'store']);
-    Route::post('/learning-path/update', [LearningPathController::class, 'update']);
-    Route::post('/learning-path/delete', [LearningPathController::class, 'destroy']);
-    Route::post('/learning-path/remove-course', [LearningPathController::class, 'remove_course']);
+    Route::post('/learning-path/add', [LearningPathController::class, 'store']); // 🟩
+    Route::post('/learning-path/update', [LearningPathController::class, 'update']); // 🟩
+    Route::post('/learning-path/delete', [LearningPathController::class, 'destroy']); // 🟩
+    Route::post('/learning-path/remove-course', [LearningPathController::class, 'remove_course']); // 🟩
 });
 // End of Endpoint: Learning Paths
 
 
-// Endpoint: Courses ⬜
-Route::get('/course/get', [CourseController::class, 'index']);
-Route::get('/course/no-learning-path/get', [CourseController::class, 'lone_course']);
-Route::get('/course/get/{slug}', [CourseController::class, 'show']);
+// Endpoint: Courses 🟩
+Route::get('/course/get', [CourseController::class, 'index']); // 🟩
+Route::get('/course/no-learning-path/get', [CourseController::class, 'lone_course']); // 🟩
+Route::get('/course/get/{slug}', [CourseController::class, 'show']); // 🟩
 
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::post('/course/add', [CourseController::class, 'store']);
-    Route::post('/course/update', [CourseController::class, 'update']);
-    Route::post('/course/delete', [CourseController::class, 'destroy']);
+    Route::post('/course/add', [CourseController::class, 'store']); // 🟩
+    Route::post('/course/update', [CourseController::class, 'update']); // 🟩
+    Route::post('/course/delete', [CourseController::class, 'destroy']); // 🟩
+    Route::post('/course/{id}/remove_teacher', [CourseController::class, 'remove_teacher']); // 🟩
 });
 // End of Endpoint: Courses
+
+
+// Endpoint: Dashboard
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get('/dashboard', [DashboardController::class, 'dashboard']);
+});
+// End of Endpoint: Dashboard
 
 
 // Endpoint: Course Items ⬜
