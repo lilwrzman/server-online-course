@@ -16,19 +16,45 @@ class TeacherSeeder extends Seeder
         User::create([
             'email' => 'teacher01@gmail.com',
             'username' => 'teacher01',
-            'password' => 'teacher123',
+            'password' => 'User1234',
             'role' => 'Teacher',
             'status' => 'Active',
-            'info' => ['fullname' => 'Yunizel']
+            'info' => [
+                'fullname' => 'Yunizel Bach',
+                'social_media' => [
+                    [
+                        'type' => 'Facebook',
+                        'username' => 'Yunizel Bach',
+                        'url' => 'https://facebook.com/yunizel_bach'
+                    ], [
+                        'type' => 'Instagram',
+                        'username' => 'yunizelbach',
+                        'url' => 'https://instagram.com/yunizelbach'
+                    ]
+                ]
+            ]
         ]);
 
         User::create([
             'email' => 'teacher02@gmail.com',
             'username' => 'teacher02',
-            'password' => 'teacher123',
+            'password' => 'User1234',
             'role' => 'Teacher',
             'status' => 'Active',
-            'info' => ['fullname' => 'Yufrizal']
+            'info' => [
+                'fullname' => 'Yusriadi',
+                'social_media' => [
+                    [
+                        'type' => 'Facebook',
+                        'username' => 'Yusriadi',
+                        'url' => 'https://facebook.com/yusriadi'
+                    ], [
+                        'type' => 'Instagram',
+                        'username' => 'yusriadi',
+                        'url' => 'https://instagram.com/yusriadi'
+                    ]
+                ]
+            ]
         ]);
     }
 }

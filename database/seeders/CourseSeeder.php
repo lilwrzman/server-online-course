@@ -14,21 +14,43 @@ class CourseSeeder extends Seeder
     public function run(): void
     {
         Course::create([
-            'title' => 'Building Trust 01',
+            'title' => 'Building Trust',
             'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore, eveniet ea. Voluptatum dolorem assumenda officiis consectetur? Minus molestiae consequuntur magni!',
             'price' => 120000,
+            'teacher_id' => 2,
+            'learning_path_id' => 1
         ]);
 
         Course::create([
-            'title' => 'Building Trust 02',
+            'title' => 'Building Need',
             'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore, eveniet ea. Voluptatum dolorem assumenda officiis consectetur? Minus molestiae consequuntur magni!',
             'price' => 120000,
+            'teacher_id' => 2,
+            'learning_path_id' => 1
         ]);
 
         Course::create([
-            'title' => 'Building Trust 03',
+            'title' => 'Handling Objection',
             'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore, eveniet ea. Voluptatum dolorem assumenda officiis consectetur? Minus molestiae consequuntur magni!',
             'price' => 120000,
+            'teacher_id' => 2,
+            'learning_path_id' => 1
+        ]);
+
+        Course::create([
+            'title' => 'Trying to Close',
+            'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore, eveniet ea. Voluptatum dolorem assumenda officiis consectetur? Minus molestiae consequuntur magni!',
+            'price' => 120000,
+            'teacher_id' => 2,
+            'learning_path_id' => 1
+        ]);
+
+        Course::create([
+            'title' => 'Closing',
+            'description' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Labore, eveniet ea. Voluptatum dolorem assumenda officiis consectetur? Minus molestiae consequuntur magni!',
+            'price' => 120000,
+            'teacher_id' => 2,
+            'learning_path_id' => 1
         ]);
     }
 }

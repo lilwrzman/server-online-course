@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('thumbnail')->nullable()->default('learning-paths/thumbnail.png');
             $table->integer('courses')->nullable()->default(0);
+            $table->boolean('isPublished')->nullable()->default(false);
+            $table->string('color')->unique()->nullable();
             $table->timestamps();
         });
     }

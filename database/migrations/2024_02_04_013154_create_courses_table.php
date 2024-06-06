@@ -20,11 +20,11 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('thumbnail')->nullable()->default('courses/thumbnail.png');
             $table->integer('price');
-            $table->enum('status', ['Drafted', 'Published'])->nullable()->default('Drafted');
             $table->integer('order')->nullable()->default(0);
             $table->decimal('rating', 3, 1)->nullable()->default(0);
             $table->integer('items')->nullable()->default(0);
             $table->integer('enrolled')->nullable()->default(0);
+            $table->boolean('isPublished')->nullable()->default(false);
             $table->timestamps();
 
             $table->foreign('learning_path_id')->references('id')

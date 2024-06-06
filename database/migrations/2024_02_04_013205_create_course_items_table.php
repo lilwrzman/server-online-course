@@ -15,15 +15,15 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('course_id');
             $table->string('title');
-            $table->longText('content');
-            $table->enum('type', ['Material', 'Quiz', 'Exam']);
+            $table->longText('description');
+            $table->enum('type', ['Video', 'Quiz', 'Exam']);
             $table->string('slug')->unique();
             $table->json('info')->nullable();
-            $table->integer('order');
+            $table->integer('order')->nullable()->default(0);
             $table->timestamps();
 
             $table->foreign('course_id')->references('id')
-                ->on('courses');
+                ->on('courses')->onDelete('cascade');
         });
     }
 
