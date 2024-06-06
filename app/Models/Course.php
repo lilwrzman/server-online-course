@@ -15,9 +15,13 @@ class Course extends Model
         'slug', 'thumbnail', 'price', 'status'
     ];
 
+    protected $casts = [
+        'isPublished' => 'boolean'
+    ];
+
     public function learningPath()
     {
-        return $this->belongsTo(LearningPath::class);
+        return $this->belongsTo(LearningPath::class, 'learning_path_id');
     }
 
     public function teacher()
@@ -28,6 +32,16 @@ class Course extends Model
     public function feedbacks()
     {
         return $this->hasMany(CourseFeedback::class);
+    }
+
+    public function courseAccesses()
+    {
+        return $this->hasMany(CourseAccess::class, 'course_id');
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'course_accesses');
     }
 
     public function sluggable(): array

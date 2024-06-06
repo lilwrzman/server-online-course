@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\VerificationSuccessEmail;
 use App\Mail\VerifyEmail;
+use App\Models\Referral;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,13 @@ class AuthController extends Controller
             "role" => 'Student',
             "status" => "Non-Active"
         ]);
+
+        if($request->input('referral')){
+            $corporate_id = Referral::where('code', '=', $request->input('referral'))->get(['corporate_id'])->first();
+            $corporate_id = $corporate_id['corporate_id'];
+            $user->corporate_id = $corporate_id;
+            $user->save();
+        }
 
         $user->info = ["fullname" => $request->input("fullname")];
         $user->verification_token = Str::random(40);
@@ -100,6 +108,7 @@ class AuthController extends Controller
             }
 
             $userData = json_encode([
+                'avatar' => $user->avatar,
                 'role' => $user->role,
                 'username' => $user->username,
                 'token' => $user->createToken('Personal Access Client')->accessToken

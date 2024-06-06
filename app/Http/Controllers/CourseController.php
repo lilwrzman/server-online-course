@@ -4,28 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Constraint\Count;
 
 class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::all();
+        $user = Auth::guard('api')->user();
+        $data = [];
+        $data['courses'] = Course::with('learningPath:id,title,color')->get();
 
-        foreach($courses as $course){
-            $learningPath = $course->learningPath;
-            if($learningPath){
-                $course->path_title = $learningPath->title;
-                unset($course->learningPath);
+        if($user){
+            $role = $user->role;
+            if($role == 'Teacher'){
+                $data['my_courses'] = Course::with('learningPath:id,title,color')->where('teacher_id', $user->id)->get();
+                $data['my_courses']->makeHidden(['learning_path_id']);
             }
         }
 
-        return response()->json(['data' => $courses], 200);
+        $data['courses']->makeHidden(['learning_path_id']);
+
+        return response()->json(['data' => $data], 200);
     }
 
     public function lone_course()
@@ -33,13 +40,6 @@ class CourseController extends Controller
         $courses = Course::whereNull('learning_path_id')->get();
 
         return response()->json(['data' => $courses], 200);
-    }
-
-    public function published()
-    {
-        $course = Course::where('status', 'Published')->get();
-
-        return response()->json(['data' => $course], 200);
     }
 
     /**
@@ -214,28 +214,57 @@ class CourseController extends Controller
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
-        $course = Course::findOrFail($request->input('id'));
+        DB::beginTransaction();
 
-        // dd($course->toArray());
+        try {
+            $course = Course::findOrFail($request->input('id'));
 
-        if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
-            Storage::delete('public/' . $course->thumbnail);
-        }
-
-        if($course->learning_path_id){
-            $learningPath = $course->learningPath;
-            $learningPath->courses -= 1;
-            $learningPath->save();
-
-            $courses = $learningPath->courses()->whereNot('id', $course->id)->orderBy('order')->get();
-            foreach ($courses as $index => $item){
-                $item->order = $index + 1;
-                $item->save();
+            if (Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')) {
+                Storage::delete('public/' . $course->thumbnail);
             }
+
+            if ($course->learning_path_id) {
+                $learningPath = $course->learningPath;
+                $learningPath->courses -= 1;
+                $learningPath->save();
+
+                $courses = $learningPath->courses()->whereNot('id', $course->id)->orderBy('order')->get();
+                foreach ($courses as $index => $item) {
+                    $item->order = $index + 1;
+                    $item->save();
+                }
+            }
+
+            $course->delete();
+
+            DB::commit();
+
+            return response()->json(['status' => true, 'message' => 'Berhasil menghapus Course.'], 200);
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            if ($e->getCode() == '23000') {
+                return response()->json(['error' => 'Materi tidak dapat dihapus karena berkaitan dengan Course Access.']);
+            }
+
+            return response()->json(['error' => 'Gagal menghapus materi.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal menghapus materi.']);
+        }
+    }
+
+    public function remove_teacher($id)
+    {
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
-        $course->delete();
+        $course = Course::findOrFail($id);
+        $course->teacher_id = null;
+        $course->save();
 
-        return response()->json(['status' => true, 'message' => 'Berhasil menghapus Course.'], 200);
+        return response()->json(['status' => true, 'message' => 'Berhasil melepas pemateri dari materi ' . $course->title . '!'], 200);
     }
 }

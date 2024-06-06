@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Referral;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -28,21 +31,33 @@ class UserController extends Controller
         }
 
         $role = $request->query('role');
-        $accounts = [];
+        if(!$role){
+            return response()->json(['status' => false, 'message' => 'Tidak memilih role!'], 401);
+        }
 
-        if($role){
-            $accounts = User::select('id', 'email', 'username', 'info', 'status')
-                ->where('role', '=', $role)
-                ->get();
+        $accounts = User::where('role', '=', $role)->get();
 
-            if($role == 'Student'){
-                foreach ($accounts as $item) {
-                    $item['fullname'] = $item['info']['fullname'];
+        foreach ($accounts as $item) {
+            foreach ($item->info as $key => $value) {
+                $item[$key] = $value;
+            }
+
+            if($role == 'Corporate Admin'){
+                $item['referral_code'] = $item->getReferralCode();
+                $item['student_count'] = $item->corporateStudentCount();
+            }else if($role == 'Teacher'){
+                $item['course_count'] = $item->teacherCourseCount();
+            }else if($role == 'Student'){
+                if($item->corporate_id){
+                    $corporate = User::where('role', '=', 'Corporate Admin')
+                        ->where('id', $item->corporate_id)->get(['info'])->first();
                 }
-
-                $accounts->makeHidden(['info']);
+                $item['type'] = $item->corporate_id ? 'Mitra ' . $corporate['info']['name'] : 'Umum';
+                $item['course_count'] = $item->courseAccessCount();
             }
         }
+
+        $accounts->makeHidden(['corporate_id']);
 
         return response()->json([
             'status' => true,
@@ -58,12 +73,30 @@ class UserController extends Controller
         }
 
         $detail = User::findOrFail($id);
-        $detail->makeHidden(["password", "verification_token", "corporate_id", "email_verified_at", "updated_at"]);
-        if($detail->role == 'Student'){
-            $detail['fullname'] = $detail['info']['fullname'];
 
-            $detail->makeHidden(['info']);
+        if($detail->role == 'Student'){
+            $detail['my_courses'] = $detail->myCourses()->get(['slug', 'thumbnail', 'title', 'description']);
+            $detail['type'] = $detail->corporate_id ? 'Mitra' : 'Umum';
+            $detail['corporates'] = User::where('role', '=', 'Corporate Admin')->get(['id', 'info'])->makeVisible(['info']);
+        }else if($detail->role == 'Teacher'){
+            $detail['my_courses'] = $detail->courses()->get(['slug', 'thumbnail', 'title', 'description', 'items']);
+        }else if($detail->role == 'Corporate Admin'){
+            $detail['referral'] = $detail->getReferralCode();
+            $detail['my_students'] = $detail->corporateStudents()->get();
+            foreach($detail['my_students'] as $student){
+                foreach($student->info as $key => $value){
+                    $student[$key] = $value;
+                }
+
+                $student->makeHidden(['info']);
+            }
         }
+
+        foreach ($detail->info as $key => $value) {
+            $detail[$key] = $value;
+        }
+
+        $detail->makeHidden(['info']);
 
         return response()->json(['status' => true, 'data' => $detail]);
     }
@@ -75,58 +108,254 @@ class UserController extends Controller
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
-        $validator = Validator::make($request->all(), [
-            'fullname' => 'required|string|max:255',
-            'username' => 'required|string|max:14|unique:users,username',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|max:16|confirmed',
-            'referral' => 'nullable|string',
-        ]);
+        $role = $request->input('role');
+        $info = [];
+        $validate_rules = [];
+        $validate_message = [];
+
+        if($role == 'Corporate Admin'){
+            $validate_rules = [
+                'name' => 'required|string|max:255',
+                'address' => 'required|string|max:255',
+                'contact' => 'required|string|max:255',
+                'username' => 'required|string|unique:users,username',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            ];
+
+            $validate_message = [
+                'fullname.required' => 'Mohon masukkan nama lengkap.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
+        }else if($role == "Student"){
+            $validate_rules = [
+                'fullname' => 'required|string|max:255',
+                'username' => 'required|string|max:14|unique:users,username',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            ];
+
+            $validate_message = [
+                'fullname.required' => 'Mohon masukkan nama lengkap.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
+        }else if($role == "Teacher"){
+            $validate_rules = [
+                'fullname' => 'required|string|max:255',
+                'username' => 'required|string|unique:users,username',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'facebook_name' => 'nullable|string|max:255',
+                'facebook_url' => 'nullable|url|required_with:facebook_name',
+                'instagram_name' => 'nullable|string|max:255',
+                'instagram_url' => 'nullable|url|required_with:instagram_name',
+                'avatar_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            ];
+
+            $validate_message = [
+                'fullname.required' => 'Mohon masukkan nama lengkap.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
+        }
+
+        $validator = Validator::make($request->all(), $validate_rules, $validate_message);
 
         if($validator->fails()){
             return response()->json(['error' => $validator->errors()]);
         }
 
-        $role = $request->input('role');
+        $field = [
+            'email' => $request->input('email'),
+            'username' => $request->input('username'),
+            'password' => 'User1234',
+            'role' => $role,
+            'status' => 'Active',
+            'corporate_id' => $request->input('corporate_id') ? $request->input('corporate_id') : null,
+            'email_verified_at' => now()
+        ];
 
-        if($role == 'Student'){
-            $user = User::create([
-                'email' => $request->input('email'),
-                'username' => $request->input('username'),
-                'password' => 'student123',
-                'role' => 'Student',
-                'info' => ['fullname' => $request->input('fullname')],
-                'status' => 'Active',
-                'email_verified_at' => now()
-            ]);
+        if($request->hasFile('avatar_file')){
+            $avatar = $request->file('avatar_file');
+            $avatarPath = $avatar->storeAs(
+                'avatars',
+                uniqid() . '_' . time() . '.' . $avatar->getClientOriginalExtension(), 'public'
+            );
 
-            if($user){
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Student berhasil ditambahkan!'
-                ]);
-            }
+            $field['avatar'] = $avatarPath;
         }
 
+        $user = User::create($field);
+
+        if(!$user){
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal menambahkan data!'
+            ]);
+        }
+
+        if($role == 'Corporate Admin'){
+            $info = [
+                'name' => $request->input('name'),
+                'address' => $request->input('address'),
+                'contact' => $request->input('contact')
+            ];
+
+            $code = User::generateReferralCode();
+            $referral = Referral::create([
+                'corporate_id' => $user->id,
+                'code' => $code
+            ]);
+
+            if(!$referral){
+                $user->delete();
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Terjadi kesalahan saat pembuatan referral, mohon coba lagi!'
+                ]);
+            }
+        }else if($role == 'Student'){
+            $info = ['fullname' => $request->input('fullname')];
+        }else if($role == 'Teacher'){
+            $info = ['fullname' => $request->input('fullname')];
+            $info['social_media'] = [
+                [
+                    "type" => 'Facebook',
+                    "username" => $request->input('facebook_name') ?? '' ,
+                    "url" => $request->input('facebook_url') ?? ''
+                ], [
+                    "type" => 'Instagram',
+                    "username" => $request->input('instagram_name') ?? '',
+                    "url" => $request->input('instagram_url')?? ''
+                ]
+            ];
+        }
+
+        $user->info = $info;
+        $user->save();
+
         return response()->json([
-            'status' => false,
-            'message' => 'Gagal menambahkan data!'
+            'status' => true,
+            'message' => 'Akun berhasil ditambahkan!'
         ]);
     }
 
     public function update(Request $request)
     {
-        $user = Auth::user();
-        if(!$user->role == 'Superadmin'){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+        $user = User::findOrFail($request->input('id'));
+        $info = [];
+        $role = $user->role;
+        $validate_rules = [];
+        $validate_message = [];
+
+        if($role == 'Corporate Admin'){
+            $validate_rules = [
+                'name' => 'required|string|max:255',
+                'address' => 'required|string|max:255',
+                'contact' => 'required|string|max:255',
+                'username' => 'required|string|unique:users,username,' . $user->id,
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            ];
+
+            $validate_message = [
+                'name.required' => 'Mohon masukkan nama lengkap.',
+                'address.required' => 'Mohon masukkan alamat perusahaan.',
+                'contact.required' => 'Mohon masukkan kontak perusahaan.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
+        }else if($role == 'Student'){
+            $validate_rules = [
+                'fullname' => 'required|string|max:255',
+                'username' => 'required|string|unique:users,username,' . $user->id,
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            ];
+
+            $validate_message = [
+                'fullname.required' => 'Mohon masukkan nama lengkap.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
+        }else if($role == 'Teacher'){
+            $validate_rules = [
+                'fullname' => 'required|string|max:255',
+                'username' => 'required|string|unique:users,username,' . $user->id,
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'facebook_name' => 'nullable|string|max:255',
+                'instagram_name' => 'nullable|string|max:255',
+                'facebook_url' => 'nullable|url|required_with:facebook_name',
+                'instagram_url' => 'nullable|url|required_with:instagram_name',
+            ];
+
+            $validate_message = [
+                'fullname.required' => 'Mohon masukkan nama lengkap.',
+                'username.required' => 'Mohon masukkan username.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Mohon masukkan email.',
+                'email.unique' => 'Email sudah digunakan.'
+            ];
         }
 
+        $validator = Validator::make($request->all(), $validate_rules, $validate_message);
+
+        if($validator->fails()){
+            return response()->json(['error' => $validator->errors()]);
+        }
+
+        if($user->role == 'Corporate Admin'){
+            $info = [
+                'name' => $request->input('name'),
+                'address' => $request->input('address'),
+                'contact' => $request->input('contact')
+            ];
+        }else if($user->role == 'Student'){
+            $info = ['fullname' => $request->input('fullname')];
+        }else if($user->role == 'Teacher'){
+            $info = ['fullname' => $request->input('fullname')];
+            $info['social_media'] = [
+                [
+                    "type" => 'Facebook',
+                    "username" => $request->input('facebook_name') ?? '' ,
+                    "url" => $request->input('facebook_url') ?? ''
+                ], [
+                    "type" => 'Instagram',
+                    "username" => $request->input('instagram_name') ?? '',
+                    "url" => $request->input('instagram_url')?? ''
+                ]
+            ];
+        }
+
+        $field = [
+            'corporate_id' => $request->input('corporate_id') == null ||
+                $request->input('corporate_id') == 'null' ? null : $request->input('corporate_id'),
+            'email' => $request->input('email'),
+            'username' => $request->input('username'),
+            'info' => $info
+        ];
+
+        $user->update($field);
+
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah data akun.']);
+    }
+
+    public function update_avatar(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
-            'fullname' => 'required|string|max:255',
-            'username' => 'required|string|max:14|unique:users,username,' . $request->input('id'),
-            'email' => 'required|string|email|max:255|unique:users,email,' . $request->input('id'),
-            'referral' => 'nullable|string',
+            'avatar_file' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'avatar_file.required' => 'Mohon pilih foto profil.',
         ]);
 
         if($validator->fails()){
@@ -134,18 +363,21 @@ class UserController extends Controller
         }
 
         $user = User::findOrFail($request->input('id'));
-        if(!$user){
-            return response()->json(['status' => false, 'message' => 'User tidak ditemukan.']);
+
+        if(Storage::exists('public/' . $user->avatar) && !str_contains($user->avatar, 'default.png')){
+            Storage::delete('public/' . $user->avatar);
         }
 
-        if($user->role == 'Student'){
-            $user->username = $request->input('username');
-            $user->email = $request->input('email');
-            $user->info = ['fullname' => $request->input('fullname')];
-            $user->save();
+        $avatar = $request->file('avatar_file');
+        $avatarPath = $avatar->storeAs(
+            'avatars',
+            uniqid() . '_' . time() . '.' . $avatar->getClientOriginalExtension(), 'public'
+        );
 
-            return response()->json(['status' => true, 'message' => 'Berhasil mengubah data.']);
-        }
+        $user->avatar = $avatarPath;
+        $user->save();
+
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah foto profil.']);
     }
 
     public function delete(Request $request)

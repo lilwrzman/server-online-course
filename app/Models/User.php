@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -37,6 +38,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_token'
     ];
 
     /**
@@ -63,5 +65,52 @@ class User extends Authenticatable
     public function corporateStudents()
     {
         return $this->hasMany(User::class, 'corporate_id');
+    }
+
+    public function corporateStudentCount()
+    {
+        return $this->corporateStudents()->count();
+    }
+
+    public function courses(){
+        return $this->hasMany(Course::class, 'teacher_id');
+    }
+
+    public function teacherCourseCount()
+    {
+        return $this->courses()->count();
+    }
+
+    public function courseAccesses()
+    {
+        return $this->hasMany(CourseAccess::class);
+    }
+
+    public function myCourses(){
+        return $this->belongsToMany(Course::class, 'course_accesses')->withPivot('access_date');
+    }
+
+    public function courseAccessCount()
+    {
+        return $this->courseAccesses()->count();
+    }
+
+    public function referral()
+    {
+        return $this->hasOne(Referral::class, 'corporate_id');
+    }
+
+    public function getReferralCode()
+    {
+        return $this->referral()->first()->code ?? null;
+    }
+
+    public static function generateReferralCode()
+    {
+        do {
+            $code = Str::random(10);
+        } while (Referral::where('code', $code)->exists());
+
+        return $code;
     }
 }
