@@ -113,4 +113,14 @@ class User extends Authenticatable
 
         return $code;
     }
+
+    public function bundles()
+    {
+        return $this->hasMany(CourseBundle::class);
+    }
+
+    public function redeemHistory()
+    {
+        return $this->hasMany(RedeemHistory::class);
+    }
 }

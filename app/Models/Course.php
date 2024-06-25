@@ -12,11 +12,14 @@ class Course extends Model
 
     protected $fillable = [
         'learning_path_id', 'teacher_id', 'title', 'description',
-        'slug', 'thumbnail', 'price', 'status'
+        'slug', 'thumbnail', 'price', 'order',
+        'rating', 'items', 'enrolled', 'isPublished',
+        'facilities'
     ];
 
     protected $casts = [
-        'isPublished' => 'boolean'
+        'isPublished' => 'boolean',
+        'facilities' => 'json'
     ];
 
     public function learningPath()
@@ -27,6 +30,11 @@ class Course extends Model
     public function teacher()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(CourseItem::class, 'course_id');
     }
 
     public function feedbacks()

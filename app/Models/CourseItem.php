@@ -10,7 +10,7 @@ class CourseItem extends Model
 {
     use HasFactory, Sluggable;
 
-    protected $fillable = ['course_id', 'title', 'content', 'type', 'slug', 'info'];
+    protected $fillable = ['course_id', 'title', 'description', 'type', 'slug', 'info', 'order'];
     protected $casts = ['info' => 'json'];
 
     public function sluggable(): array
@@ -20,5 +20,20 @@ class CourseItem extends Model
                 'source' => 'title'
             ]
         ];
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(AssessmentQuestion::class, 'item_id');
+    }
+
+    public function questionsCount()
+    {
+        return $this->questions()->count();
     }
 }
