@@ -7,12 +7,9 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use PHPUnit\Framework\Constraint\Count;
 
 class CourseController extends Controller
 {
@@ -20,7 +17,7 @@ class CourseController extends Controller
     {
         $user = Auth::guard('api')->user();
         $data = [];
-        $data['courses'] = Course::with('learningPath:id,title,color')->get();
+        $data['courses'] = Course::with(['learningPath:id,title,color'])->get();
 
         if($user){
             $role = $user->role;
@@ -35,7 +32,7 @@ class CourseController extends Controller
         return response()->json(['data' => $data], 200);
     }
 
-    public function lone_course()
+    public function loneCourse()
     {
         $courses = Course::whereNull('learning_path_id')->get();
 
@@ -57,13 +54,16 @@ class CourseController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'thumbnail_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'price' => 'required|int'
+            'price' => 'required|int',
+            'facilities' => 'required|array',
+            'facilities.*' => 'required|string'
         ], [
             'teacher_id.required' => 'Silahkan pilih salah satu pemateri.',
             'title.required' => 'Harap masukkan judul.',
             'desciption.required' => 'Harap masukkan deskripsi.',
             'price.required' => 'Harap tentukan harga jual materi.',
-            'price.int' => 'Harap masukkan harga dalam bentuk angka.'
+            'price.int' => 'Harap masukkan harga dalam bentuk angka.',
+            'facilities.required' => 'Harap menentukan fasilitas pembelajaran materi.'
         ]);
 
         if($validator->fails()){
@@ -94,9 +94,14 @@ class CourseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, $slug)
+    public function show(Request $request, $id)
     {
-        $course = Course::where('slug', '=', $slug)->with('teacher')->firstOrFail();
+        $course = Course::with([
+                'teacher:id,info,avatar',
+                'items:id,course_id,title,description,info,type',
+                'items.questions:id,item_id'
+            ])
+            ->findOrFail($id);
 
         if($request->input('with_teachers') == 'yes'){
             $course['teachers'] = User::where('id', '!=', $course->teacher_id)
@@ -124,12 +129,15 @@ class CourseController extends Controller
         if($section == 'General'){
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string',
-                'description' => 'required|string'
+                'description' => 'required|string',
+                'facilities' => 'required|array',
+                'facilities.*' => 'required|string'
             ], [
                 'title.required' => 'Harap masukkan judul.',
                 'title.string' => 'Harap masukkan judul dalam bentuk kombinasi huruf maupun angka!',
                 'desciption.required' => 'Harap masukkan deskripsi.',
-                'description.string' => 'Harap masukkan deskripsi dalam bentuk kombinasi huruf maupun angka!'
+                'description.string' => 'Harap masukkan deskripsi dalam bentuk kombinasi huruf maupun angka!',
+                'facilities.required' => 'Harap menentukan fasilitas pembelajaran materi.'
             ]);
 
             if($validator->fails()){
@@ -139,7 +147,8 @@ class CourseController extends Controller
             $course->slug = null;
             $course->update([
                 'title' => $request->input('title'),
-                'description' => $request->input('description')
+                'description' => $request->input('description'),
+                'facilities' => $request->input('facilities')
             ]);
 
             return response()->json(['status' => true, 'message' => 'Data umum Materi berhasil diubah!', 'data' => $course], 201);
@@ -254,7 +263,7 @@ class CourseController extends Controller
         }
     }
 
-    public function remove_teacher($id)
+    public function removeTeacher($id)
     {
         $user = Auth::user();
         if(!$user->role === 'Superadmin'){
@@ -266,5 +275,22 @@ class CourseController extends Controller
         $course->save();
 
         return response()->json(['status' => true, 'message' => 'Berhasil melepas pemateri dari materi ' . $course->title . '!'], 200);
+    }
+
+    public function reorderCourse(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->role === 'Superadmin') {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $requestData = $request->getContent();
+        $data = json_decode($requestData, true);
+
+        foreach($data as $d){
+            $item = Course::findOrFail($d['id'])->update(['order' => $d['order']]);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah urutan materi pada alur belajar!']);
     }
 }

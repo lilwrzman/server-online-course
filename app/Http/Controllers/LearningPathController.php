@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class LearningPathController extends Controller
 {
@@ -25,9 +24,7 @@ class LearningPathController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        if(!$user->role === 'Superadmin'){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
-        }
+        if(!$user->role === 'Superadmin'){ return response()->json(['error' => 'Unauthenticated.'], 401); }
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
@@ -43,9 +40,7 @@ class LearningPathController extends Controller
             'thumbnail_file.max' => 'Ukuran file tidak boleh melebihi 2 Mb!'
         ]);
 
-        if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
-        }
+        if($validator->fails()) { return response()->json(['error' => $validator->errors()]); }
 
         $field = $request->only(['title', 'description']);
 
@@ -227,7 +222,7 @@ class LearningPathController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil menghapus Alur Belajar.'], 200);
     }
 
-    public function remove_course(Request $request)
+    public function removeCourse(Request $request)
     {
         $user = Auth::user();
         if(!$user->role === 'Superadmin'){

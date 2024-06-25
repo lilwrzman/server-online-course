@@ -349,7 +349,7 @@ class UserController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil mengubah data akun.']);
     }
 
-    public function update_avatar(Request $request)
+    public function updateAvatar(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
@@ -401,5 +401,10 @@ class UserController extends Controller
         }else{
             return response()->json(['status' => false, 'message' => 'Gagal menghapus data.']);
         }
+    }
+
+    public function changeStatus($id)
+    {
+
     }
 }

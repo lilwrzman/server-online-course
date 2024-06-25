@@ -107,12 +107,22 @@ class AuthController extends Controller
                 ]);
             }
 
-            $userData = json_encode([
-                'avatar' => $user->avatar,
-                'role' => $user->role,
-                'username' => $user->username,
-                'token' => $user->createToken('Personal Access Client')->accessToken
-            ]);
+            if($user->role){
+                $userData = json_encode([
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                    'username' => $user->username,
+                    'fullname' => $user->info['fullname'],
+                    'token' => $user->createToken('Personal Access Client')->accessToken
+                ]);
+            }else{
+                $userData = json_encode([
+                    'avatar' => $user->avatar,
+                    'role' => $user->role,
+                    'username' => $user->username,
+                    'token' => $user->createToken('Personal Access Client')->accessToken
+                ]);
+            }
 
             return response()->json(['status' => true, 'userData' => $userData]);
         }
