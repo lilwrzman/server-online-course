@@ -12,6 +12,7 @@
         "laravel/passport": "^11.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "midtrans/midtrans-php": "^2.5",
         "pbmedia/laravel-ffmpeg": "^8.4"
     },
     "require-dev": {

@@ -1,12 +1,17 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CourseBundleController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\LearningPathController;
+use App\Http\Controllers\RedeemCodeController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Models\CourseBundle;
+use App\Models\CourseItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -51,8 +56,11 @@ Route::group([
     Route::get('/account/{id}', [UserController::class, 'detail']); // 🟩
     Route::post('/account/add', [UserController::class, 'create']); // 🟩
     Route::post('/account/update', [UserController::class, 'update']); // 🟩
-    Route::post('/account/update/avatar', [UserController::class, 'update_avatar']); // 🟩
-    Route::post('/account/delete', [UserController::class, 'delete']); // 🟩
+    Route::post('/account/update/avatar', [UserController::class, 'updateAvatar']); // 🟩
+    // Route::post('/account/delete', [UserController::class, 'delete']); // 🟩
+
+    // TO DO
+    Route::post('/account/{id}/change-status', [UserController::class, 'changeStatus']);
 });
 // End of Endpoint: Account Management
 
@@ -67,15 +75,15 @@ Route::group([
     Route::post('/learning-path/add', [LearningPathController::class, 'store']); // 🟩
     Route::post('/learning-path/update', [LearningPathController::class, 'update']); // 🟩
     Route::post('/learning-path/delete', [LearningPathController::class, 'destroy']); // 🟩
-    Route::post('/learning-path/remove-course', [LearningPathController::class, 'remove_course']); // 🟩
+    Route::post('/learning-path/remove-course', [LearningPathController::class, 'removeCourse']); // 🟩
 });
 // End of Endpoint: Learning Paths
 
 
 // Endpoint: Courses 🟩
 Route::get('/course/get', [CourseController::class, 'index']); // 🟩
-Route::get('/course/no-learning-path/get', [CourseController::class, 'lone_course']); // 🟩
-Route::get('/course/get/{slug}', [CourseController::class, 'show']); // 🟩
+Route::get('/course/no-learning-path/get', [CourseController::class, 'loneCourse']); // 🟩
+Route::get('/course/get/{id}', [CourseController::class, 'show']); // 🟩
 
 Route::group([
     "middleware" => ['auth:api']
@@ -83,9 +91,43 @@ Route::group([
     Route::post('/course/add', [CourseController::class, 'store']); // 🟩
     Route::post('/course/update', [CourseController::class, 'update']); // 🟩
     Route::post('/course/delete', [CourseController::class, 'destroy']); // 🟩
-    Route::post('/course/{id}/remove_teacher', [CourseController::class, 'remove_teacher']); // 🟩
+    Route::post('/course/{id}/remove-teacher', [CourseController::class, 'removeTeacher']); // 🟩
+    Route::post('/course/reorder', [CourseController::class, 'reorderCourse']);
 });
 // End of Endpoint: Courses
+
+
+// Endpoint: Course Items
+Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // Get all item in Course by Course's ID
+Route::get('/video/playlist/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
+Route::get('/video/key/{key}', [CourseItemController::class, 'key'])->name('video.key');
+
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // Get item's detail in Courses by Course's ID
+    Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // Reorder the items inside the Course
+    Route::post('/course/{id}/assessment/add', [CourseItemController::class, 'storeAssessment']);  // Add new Assessment (Quiz or Exam) in Course by it's ID
+    Route::post('/course/{id}/video/add', [CourseItemController::class, 'storeVideo']); // Add new Video in Course by it's ID
+    Route::post('/assessment/{id}/update', [CourseItemController::class, 'updateAssessment']); // Update Assessment by Item's ID
+    Route::post('/assessment/delete', [CourseItemController::class, 'deleteAssessment']); // Delete Quiz or Exam and it's question from database by it's ID
+    Route::post('/video/delete', [CourseItemController::class, 'deleteVideo']); // Delete Video and it's playlist from database and storage by it's ID
+});
+
+
+// Endpoint: Bundle 🟩
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get('/bundle/get', [CourseBundleController::class, 'index']);
+    Route::get('/bundle/get/{id}', [CourseBundleController::class, 'show']);
+    Route::post('/bundle/add', [CourseBundleController::class, 'store']); // 🟩
+    Route::post('/bundle/update', [CourseBundleController::class, 'update']); // 🟩
+    Route::post('/bundle/{id}/change-access', [CourseBundleController::class, 'changeAccess']);
+    Route::post('/redeem/get', [RedeemCodeController::class, 'show']);
+    Route::post('/redeem', [RedeemCodeController::class, 'redeem']);
+});
+// End of Endpoint: Bundle
 
 
 // Endpoint: Dashboard
@@ -97,8 +139,16 @@ Route::group([
 // End of Endpoint: Dashboard
 
 
-// Endpoint: Course Items ⬜
-Route::post('/items', [CourseItemController::class, 'store']);
+// Endpoint: Transaction
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::post('/checkout/process', [TransactionController::class, 'process']);
+    Route::post('/checkout/success/{id}', [TransactionController::class, 'success']);
+    Route::post('/checkout/pending/{id}', [TransactionController::class, 'pending']);
+});
+// End of Endpoint: Transaction
+
 
 // Endpoint: Events ⬜
 Route::get('/events', [EventController::class, 'index']);
