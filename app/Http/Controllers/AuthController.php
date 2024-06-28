@@ -107,7 +107,7 @@ class AuthController extends Controller
                 ]);
             }
 
-            if($user->role){
+            if($user->role == 'Student'){
                 $userData = json_encode([
                     'avatar' => $user->avatar,
                     'role' => $user->role,

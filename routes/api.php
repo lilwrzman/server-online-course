@@ -1,19 +1,17 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CourseAccessController;
 use App\Http\Controllers\CourseBundleController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\LearningPathController;
+use App\Http\Controllers\MyCoursesController;
 use App\Http\Controllers\RedeemCodeController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
-use App\Models\CourseBundle;
-use App\Models\CourseItem;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -146,6 +144,15 @@ Route::group([
     Route::post('/checkout/process', [TransactionController::class, 'process']);
     Route::post('/checkout/success/{id}', [TransactionController::class, 'success']);
     Route::post('/checkout/pending/{id}', [TransactionController::class, 'pending']);
+});
+// End of Endpoint: Transaction
+
+
+// Endpoint: Transaction
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get('/my-courses', [CourseAccessController::class, 'myCourses']);
 });
 // End of Endpoint: Transaction
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\CourseAccess;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class TransactionController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $course = Course::findOrFail($request->input('course_id'));
+        $course = Course::with(['items:id,course_id,type'])->findOrFail($request->input('course_id'));
         $existingTransaction = Transaction::where('user_id', $user->id)
                                           ->where('course_id', $request->input('course_id'))
                                           ->first();
@@ -33,6 +34,24 @@ class TransactionController extends Controller
         \Midtrans\Config::$is3ds = config('midtrans.is3ds');
 
         if ($existingTransaction) {
+            if($existingTransaction->status == 'success'){
+                $access = CourseAccess::where('user_id', $user->id)
+                            ->where('course_id', $request->input('course_id'))
+                            ->first();
+
+                if(!$access){
+                    $access = CourseAccess::create([
+                        "user_id" => $existingTransaction->user_id,
+                        "course_id" => $existingTransaction->course_id,
+                        "status" => "On-Progress",
+                        "type" => "Personal",
+                        "access_date" => now()
+                    ]);
+                }
+
+                return response()->json(['error' => 'You have already purchased this course'], 422);
+            }
+
             if (is_null($existingTransaction->snap_token)) {
                 $params = [
                     "transaction_details" => [
@@ -85,6 +104,18 @@ class TransactionController extends Controller
         $course = Course::findOrFail($transaction->course_id);
         $transaction->status = 'success';
         $transaction->save();
+
+        $access = CourseAccess::create([
+            "user_id" => $transaction->user_id,
+            "course_id" => $transaction->course_id,
+            "status" => "On-Progress",
+            "type" => "Personal",
+            "access_date" => now()
+        ]);
+
+        if(!$access){
+            return response()->json(['status' => false, 'message' => 'Failed to create access'], 422);
+        }
 
         return response()->json(['status' => true, 'message' => 'Berhasil membeli materi ' . $course->title . '!'], 200);
     }
