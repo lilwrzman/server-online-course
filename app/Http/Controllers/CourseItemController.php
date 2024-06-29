@@ -52,7 +52,7 @@ class CourseItemController extends Controller
             $uniqid = uniqid();
             $newFileName = $uniqid . '.' . $file->getClientOriginalExtension();
             $filePath = Storage::disk('uploads')->put($newFileName, file_get_contents($file));
-            $folderName = Str::slug($course->title) . '_' . Str::slug($request->input('title'));
+            $folderName = $uniqid;
 
             if (!$filePath) {
                 return response()->json(['status' => false, 'message' => 'Gagal upload video'], 400);
