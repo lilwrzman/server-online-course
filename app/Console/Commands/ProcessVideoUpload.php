@@ -37,9 +37,9 @@ class ProcessVideoUpload extends Command
         FFMpeg::fromDisk('uploads')
             ->open($fileName)
             ->exportForHLS()
-            ->withRotatingEncryptionKey(function($filname, $contents) use ($folderName){
-                Storage::disk('secrets')->put($folderName . '/' . $filname, $contents);
-                $keyPath = Storage::disk('secrets')->url($folderName . '/' . $filname);
+            ->withRotatingEncryptionKey(function($filename, $contents) use ($folderName){
+                Storage::disk('secrets')->put($folderName . '/' . $filename, $contents);
+                $keyPath = Storage::disk('secrets')->url($folderName . '/' . $filename);
                 return $keyPath;
             })
             ->addFormat($lowFormat)

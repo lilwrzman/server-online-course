@@ -39,7 +39,7 @@ class CourseItemController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|unique:course_items',
             'description' => 'required|string',
-            'video_file' => 'required|file|mimes:mp4|max:102400'
+            'video_file' => 'required|file|mimes:mp4|max:250000'
         ]);
 
         if ($validator->fails()) {
