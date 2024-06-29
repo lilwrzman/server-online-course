@@ -21,7 +21,7 @@ class VerifyEmail extends Mailable
     public function __construct($user)
     {
         $this->user = $user;
-        $this->verificationUrl = "http://hls-egy.pocari.id/api/email/verify/" . $this->user->id . "/" . $user->verification_token;
+        $this->verificationUrl = "https://hls-egy.pocari.id/api/email/verify/" . $this->user->id . "/" . $user->verification_token;
         $this->fullname = $this->user->info["fullname"];
     }
 
