@@ -31,7 +31,7 @@ class ProcessVideoUpload extends Command
         $fileName = $this->argument('fileName');
         $folderName = $this->argument('folderName');
         $lowFormat = (new X264('aac'))->setKiloBitrate(500);
-        $highFormat = (new X264('aac'))->setKiloBitrate(1000);
+        // $highFormat = (new X264('aac'))->setKiloBitrate(1000);
         $outputPath = "videos/{$folderName}/{$fileName}.m3u8";
 
         FFMpeg::fromDisk('uploads')
@@ -43,7 +43,7 @@ class ProcessVideoUpload extends Command
                 return $keyPath;
             })
             ->addFormat($lowFormat)
-            ->addFormat($highFormat)
+            // ->addFormat($highFormat)
             ->toDisk('public')
             ->save($outputPath);
 
