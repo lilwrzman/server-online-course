@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -62,8 +63,8 @@ class CourseItemController extends Controller
             $duration = gmdate('H:i:s', $media->getDurationInSeconds());
 
             Artisan::call('app:process-video-upload', [
-                'fileName' => $newFileName,
-                'folderName' => $folderName
+                'video_uniqid' => $uniqid,
+                'video_extention' => $file->getClientOriginalExtension()
             ]);
 
             $playlistPath = trim(Artisan::output());
@@ -75,7 +76,8 @@ class CourseItemController extends Controller
                 "description" => $request->input('description'),
                 "info" => [
                     "playlist_path" => $playlistPath,
-                    "duration" => $duration
+                    "duration" => $duration,
+                    "playlist" => $uniqid . ".m3u8"
                 ],
                 "order" => $course->items + 1
             ]);
@@ -292,26 +294,47 @@ class CourseItemController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil mengubah urutan submateri!']);
     }
 
-    public function playlist($playlist)
+    public function playlist($uniqid, $playlist)
     {
-        return FFMpeg::dynamicHLSPlaylist()
-            ->fromDisk('public')
-            ->open("videos/{$playlist}")
-            ->setKeyUrlResolver(function ($key) {
-                return route('video.key', ['key' => $key]);
-            })
-            ->setPlaylistUrlResolver(function ($playlist) {
-                return route('video.playlist', ['playlist' => $playlist]);
-            })
-            ->setMediaUrlResolver(function ($media) {
-                return Storage::disk('public')->url("videos/{$media}");
-            });
+        try {
+            return FFMpeg::dynamicHLSPlaylist()
+                ->fromDisk('public')
+                ->open("videos/{$uniqid}/{$playlist}")
+                ->setKeyUrlResolver(function ($key) use ($uniqid) {
+                    $keyUrl = route('video.key', ['key' => $key, 'uniqid' => $uniqid]);
+                    Log::info("Key URL resolved: {$keyUrl}");
+                    return $keyUrl;
+                })
+                ->setPlaylistUrlResolver(function ($playlist) use ($uniqid) {
+                    $playlistUrl = route('video.playlist', [
+                        'uniqid' => $uniqid,
+                        'playlist' => $playlist
+                    ]);
+                    Log::info("Playlist URL resolved: {$playlistUrl}");
+                    return $playlistUrl;
+                })
+                ->setMediaUrlResolver(function ($media) use ($uniqid) {
+                    $mediaUrl = Storage::disk('public')->url("videos/{$uniqid}/{$media}");
+                    Log::info("Media URL resolved: {$mediaUrl}");
+                    return $mediaUrl;
+                });
+        } catch (\Exception $e) {
+            Log::error("Error opening HLS playlist: {$e->getMessage()}");
+            abort(500, "Error opening HLS playlist.");
+        }
     }
 
-    public function key($key)
+    public function key($uniqid, $key)
     {
-        // todo
-        return Storage::disk('secrets')->download($key);
+        $keyPath = $uniqid . '/' . $key;
+        Log::info("Downloading key: {$keyPath}");
+
+        if (Storage::disk('secrets')->exists($keyPath)) {
+            return Storage::disk('secrets')->download($keyPath);
+        } else {
+            Log::error("Key not found: {$keyPath}");
+            abort(404, "Key not found.");
+        }
     }
 
     public function show(Request $request, $id)

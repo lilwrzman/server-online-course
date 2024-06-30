@@ -123,4 +123,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(RedeemHistory::class);
     }
+
+    public function studentCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_accesses');
+    }
+
+    public function hasAccessToCourse($course_id)
+    {
+        return $this->studentCourses()->where('course_id', $course_id)->exists();
+    }
+
+    public function studentProgress()
+    {
+        return $this->hasMany(StudentProgress::class, 'user_id');
+    }
 }

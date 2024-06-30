@@ -7,6 +7,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\MyCoursesController;
 use App\Http\Controllers\RedeemCodeController;
@@ -97,8 +98,8 @@ Route::group([
 
 // Endpoint: Course Items
 Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // Get all item in Course by Course's ID
-Route::get('/video/playlist/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
-Route::get('/video/key/{key}', [CourseItemController::class, 'key'])->name('video.key');
+Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
+Route::get('/video/key/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
 
 Route::group([
     "middleware" => ['auth:api']
@@ -152,10 +153,20 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/my-courses', [CourseAccessController::class, 'myCourses']);
+
 });
 // End of Endpoint: Transaction
 
+
+// Endpoint: Student
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']);
+    Route::post("/student/learn", [LearningController::class, 'learning']);
+});
+
+// End of Endpoint: Student
 
 // Endpoint: Events ⬜
 Route::get('/events', [EventController::class, 'index']);

@@ -14,7 +14,7 @@ class ProcessVideoUpload extends Command
      *
      * @var string
      */
-    protected $signature = 'app:process-video-upload {fileName} {folderName}';
+    protected $signature = 'app:process-video-upload {video_uniqid} {video_extention}';
 
     /**
      * The console command description.
@@ -28,18 +28,18 @@ class ProcessVideoUpload extends Command
      */
     public function handle()
     {
-        $fileName = $this->argument('fileName');
-        $folderName = $this->argument('folderName');
+        $video_uniqid = $this->argument('video_uniqid');
+        $video_extention = $this->argument('video_extention');
         $lowFormat = (new X264('aac'))->setKiloBitrate(500);
         // $highFormat = (new X264('aac'))->setKiloBitrate(1000);
-        $outputPath = "videos/{$folderName}/{$fileName}.m3u8";
+        $outputPath = "videos/{$video_uniqid}/{$video_uniqid}.m3u8";
 
         FFMpeg::fromDisk('uploads')
-            ->open($fileName)
+            ->open($video_uniqid . '.' . $video_extention)
             ->exportForHLS()
-            ->withRotatingEncryptionKey(function($filename, $contents) use ($folderName){
-                Storage::disk('secrets')->put($folderName . '/' . $filename, $contents);
-                $keyPath = Storage::disk('secrets')->url($folderName . '/' . $filename);
+            ->withRotatingEncryptionKey(function($filename, $contents) use ($video_uniqid){
+                Storage::disk('secrets')->put($video_uniqid . '/' . $filename, $contents);
+                $keyPath = Storage::disk('secrets')->url($video_uniqid . '/' . $filename);
                 return $keyPath;
             })
             ->addFormat($lowFormat)
