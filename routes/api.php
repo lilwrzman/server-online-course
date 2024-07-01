@@ -98,12 +98,12 @@ Route::group([
 
 // Endpoint: Course Items
 Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // Get all item in Course by Course's ID
-Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
-Route::get('/video/key/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
 
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
+    Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
+    Route::get('/video/key/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
     Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // Get item's detail in Courses by Course's ID
     Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // Reorder the items inside the Course
     Route::post('/course/{id}/assessment/add', [CourseItemController::class, 'storeAssessment']);  // Add new Assessment (Quiz or Exam) in Course by it's ID
@@ -149,15 +149,6 @@ Route::group([
 // End of Endpoint: Transaction
 
 
-// Endpoint: Transaction
-Route::group([
-    "middleware" => ['auth:api']
-], function(){
-
-});
-// End of Endpoint: Transaction
-
-
 // Endpoint: Student
 Route::group([
     "middleware" => ['auth:api']
@@ -165,6 +156,7 @@ Route::group([
     Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']);
     Route::post("/student/learn", [LearningController::class, 'learning']);
     Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
+    Route::post("/student/assessment", [LearningController::class, 'getAssessment']);
 });
 
 // End of Endpoint: Student

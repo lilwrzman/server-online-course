@@ -8,6 +8,7 @@ use App\Models\CourseItem;
 use App\Models\StudentProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class LearningController extends Controller
 {
@@ -113,5 +114,29 @@ class LearningController extends Controller
         }
 
         return response()->json(['status' => true, 'message' => 'Progress sudah ada!'], 200);
+    }
+
+    public function getAssessment(Request $request)
+    {
+        $user = Auth::user();
+        $item_id = $request->input('item_id');
+
+        if($user->role != 'Student'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'item_id' => 'required|int'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error_validator' => $validator->errors()], 400);
+        }
+
+        $item = CourseItem::whereIn('type', ['Quiz', 'Exam'])
+            ->with(['questions'])
+            ->findOrFail($item_id);
+
+        return response()->json(['status' => true, 'data' => $item], 200);
     }
 }
