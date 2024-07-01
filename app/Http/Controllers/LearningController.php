@@ -72,7 +72,7 @@ class LearningController extends Controller
             }
         }
 
-        if ($item && ($item->type === 'quiz' || $item->type === 'exam')) {
+        if ($item && ($item->type === 'Quiz' || $item->type === 'Exam')) {
             $questions_count = $item->questions()->count();
             $item->questions_count = $questions_count;
         }
@@ -81,7 +81,7 @@ class LearningController extends Controller
             'status' => true,
             'course' => $course,
             'completed_items' => $completed_items,
-            'item' => $item->toArray()
+            'item' => $item
         ], 200);
     }
 
