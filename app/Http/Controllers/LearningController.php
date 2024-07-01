@@ -81,7 +81,7 @@ class LearningController extends Controller
             'status' => true,
             'course' => $course,
             'completed_items' => $completed_items,
-            'item' => $item
+            'item' => $item->toArray()
         ], 200);
     }
 
