@@ -36,4 +36,9 @@ class CourseItem extends Model
     {
         return $this->questions()->count();
     }
+
+    public function assessmentHistories()
+    {
+        return $this->hasMany(AssessmentHistory::class, 'item_id');
+    }
 }

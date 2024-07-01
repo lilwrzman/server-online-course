@@ -138,4 +138,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudentProgress::class, 'user_id');
     }
+
+    public function assessmentHistories()
+    {
+        return $this->hasMany(AssessmentHistory::class, 'user_id');
+    }
 }

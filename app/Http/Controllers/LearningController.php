@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssessmentHistory;
+use App\Models\AssessmentQuestion;
 use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\CourseItem;
@@ -138,5 +140,65 @@ class LearningController extends Controller
             ->findOrFail($item_id);
 
         return response()->json(['status' => true, 'data' => $item], 200);
+    }
+
+    public function submitAssessment(Request $request)
+    {
+        $user = Auth::user();
+        $item_id = $request->input('item_id');
+        $answers = $request->input('answers');
+
+        if($user->role != 'Student'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'item_id' => 'required|int',
+            'answers' => 'required|array'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error_validator' => $validator->errors()], 400);
+        }
+
+        $item = CourseItem::findOrFail($item_id);
+        if(!in_array($item->type, ['Quiz', 'Exam'])) {
+            return response()->json(['error' => 'Invalid item type'], 400);
+        }
+
+        $questions = AssessmentQuestion::where('item_id', $item_id)->get();
+
+        $score = 0;
+        $total_questions = $questions->count();
+
+        foreach ($answers as $answer) {
+            $question = $questions->where('id', $answer['question_id'])->first();
+
+            if ($question && $question->correct_answer == $answer['answer']) {
+                $score++;
+            }
+        }
+
+        $percentage_score = ($score / $total_questions) * 100;
+
+        $passing_score = $item->info['passing_score'] ?? 0;
+        $isPass = $percentage_score >= $passing_score;
+
+        $assessmentHistory = AssessmentHistory::create([
+            'user_id' => $user->id,
+            'item_id' => $item_id,
+            'answer' => json_encode($answers),
+            'score' => $percentage_score,
+            'is_pass' => $isPass
+        ]);
+
+        $result = "";
+        if($isPass){
+            $result = "Selamat, Anda lulus kuis dengan perolehan nilai: {$percentage_score}";
+        }else{
+            $result = "Mohon maaf, Anda masih gagal kuis dengan perolehan nilai: {$percentage_score}";
+        }
+
+        return response()->json(['status' => true, 'message' => $result, 'title' => $isPass ? 'Selamat!' : 'Oops!'], 200);
     }
 }

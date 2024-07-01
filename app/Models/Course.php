@@ -60,4 +60,9 @@ class Course extends Model
             ]
         ];
     }
+
+    public function assessmentHistories()
+    {
+        return $this->hasManyThrough(AssessmentHistory::class, CourseItem::class, 'course_id', 'item_id', 'id', 'id');
+    }
 }
