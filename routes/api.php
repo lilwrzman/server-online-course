@@ -98,11 +98,11 @@ Route::group([
 
 // Endpoint: Course Items
 Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // Get all item in Course by Course's ID
+Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
 
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
     Route::get('/video/key/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
     Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // Get item's detail in Courses by Course's ID
     Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // Reorder the items inside the Course
