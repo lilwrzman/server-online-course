@@ -192,6 +192,14 @@ class LearningController extends Controller
             'is_pass' => $isPass
         ]);
 
+        if($item->type == 'Exam' && $isPass){
+            $new_progress = StudentProgress::create([
+                'user_id' => $user->id,
+                'item_id' => $item_id,
+                'is_done' => true
+            ]);
+        }
+
         $result = "";
         if($isPass){
             $result = "Selamat, Anda lulus kuis dengan perolehan nilai: {$percentage_score}";
