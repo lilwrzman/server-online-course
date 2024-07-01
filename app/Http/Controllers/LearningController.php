@@ -37,23 +37,27 @@ class LearningController extends Controller
 
         if($item_id) {
             $item = CourseItem::where('id', $item_id)
+                ->with(['questions:id,item_id'])
                 ->where('course_id', $course->id)
                 ->firstOrFail();
         }else {
             if ($completed_items->isEmpty()) {
                 $item = CourseItem::where('course_id', $course->id)
+                    ->with(['questions:id,item_id'])
                     ->where('order', 1)
                     ->first();
             } else {
                 if ($next_item) {
                     $latest_completed_item = $completed_items->max('item.order');
                     $next_item = CourseItem::where('course_id', $course->id)
+                        ->with(['questions:id,item_id'])
                         ->where('order', '>', $latest_completed_item)
                         ->orderBy('order')
                         ->first();
 
                     if (!$next_item) {
                         $next_item = CourseItem::where('course_id', $course->id)
+                            ->with(['questions:id,item_id'])
                             ->where('type', 'exam')
                             ->first();
                     }
@@ -67,13 +71,9 @@ class LearningController extends Controller
                 } else{
                     $latest_completed_item = $completed_items->max('item.order');
                     $item = $completed_items->where('item.order', $latest_completed_item)->first()->item->id;
-                    $item = CourseItem::findOrFail($item);
+                    $item = CourseItem::with(['questions:id,item_id'])->findOrFail($item);
                 }
             }
-        }
-
-        if ($item->type == 'Quiz' || $item->type == 'Exam') {
-            $item['question_count'] = $item->questions()->count();
         }
 
         return response()->json([
