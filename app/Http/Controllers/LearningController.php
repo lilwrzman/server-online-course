@@ -15,6 +15,7 @@ class LearningController extends Controller
     {
         $user = Auth::user();
         $item_id = $request->input('item_id');
+        $next_item = $request->input('next_item');
 
         if($user->role !== 'Student'){
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -34,6 +35,26 @@ class LearningController extends Controller
             ->with(['item:id,slug,order'])
             ->get(['id', 'user_id', 'item_id', 'is_done']);
 
+        if ($next_item) {
+            $latest_completed_item = $completed_items->max('item.order');
+            $next_item = CourseItem::where('course_id', $course->id)
+                ->where('order', '>', $latest_completed_item)
+                ->orderBy('order')
+                ->first();
+
+            if (!$next_item) {
+                $next_item = CourseItem::where('course_id', $course->id)
+                    ->where('type', 'exam')
+                    ->first();
+            }
+
+            return response()->json([
+                'status' => true,
+                'course' => $course,
+                'completed_items' => $completed_items,
+                'item' => $next_item
+            ], 200);
+        }
 
         if($item_id) {
             $item = CourseItem::where('id', $item_id)
@@ -87,6 +108,6 @@ class LearningController extends Controller
             return response()->json(['status' => true, 'message' => 'Berhasil update progress!'], 200);
         }
 
-        return response()->json(['error' => 'Progress sudah ada!'], 500);
+        return response()->json(['status' => true, 'message' => 'Progress sudah ada!'], 200);
     }
 }
