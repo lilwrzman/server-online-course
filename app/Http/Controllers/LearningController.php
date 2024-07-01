@@ -58,4 +58,35 @@ class LearningController extends Controller
             'item' => $item
         ], 200);
     }
+
+    public function updateProgress(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role !== 'Student'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $item_id = $request->input('item_id');
+
+        $progress = StudentProgress::where('item_id', $item_id)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+        if(!$progress){
+            $new_progress = StudentProgress::create([
+                'user_id' => $user->id,
+                'item_id' => $item_id,
+                'is_done' => true
+            ]);
+
+            if(!$new_progress){
+                return response()->json(['error' => 'Gagal menambahkan progress!'], 500);
+            }
+
+            return response()->json(['status' => true, 'message' => 'Berhasil update progress!'], 200);
+        }
+
+        return response()->json(['error' => 'Progress sudah ada!'], 500);
+    }
 }
