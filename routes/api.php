@@ -164,6 +164,7 @@ Route::group([
 ], function(){
     Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']);
     Route::post("/student/learn", [LearningController::class, 'learning']);
+    Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
 });
 
 // End of Endpoint: Student
