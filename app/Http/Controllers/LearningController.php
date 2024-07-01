@@ -72,9 +72,8 @@ class LearningController extends Controller
             }
         }
 
-        if ($item && ($item->type === 'Quiz' || $item->type === 'Exam')) {
-            $questions_count = $item->questions()->count();
-            $item->questions_count = $questions_count;
+        if ($item->type == 'Quiz' || $item->type == 'Exam') {
+            $item['question_count'] = $item->questions()->count();
         }
 
         return response()->json([
