@@ -65,4 +65,9 @@ class Course extends Model
     {
         return $this->hasManyThrough(AssessmentHistory::class, CourseItem::class, 'course_id', 'item_id', 'id', 'id');
     }
+
+    public function transaction()
+    {
+        return $this->hasMany(Transaction::class, 'course_id');
+    }
 }

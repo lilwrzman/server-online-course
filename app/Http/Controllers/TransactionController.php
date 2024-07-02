@@ -15,6 +15,10 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
 
+        if($user->role != 'Student'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
         $validator = Validator::make($request->all(), [
             'course_id' => 'required|int'
         ]);
@@ -129,5 +133,28 @@ class TransactionController extends Controller
         $transaction->save();
 
         return response()->json(['status' => true, 'message' => 'Pembelian materi ' . $course->title . ' pending!'], 200);
+    }
+
+    public function transactionHistory(Request $request){
+        $user = Auth::user();
+
+        if($user->role != 'Student' && $user->role != 'Superadmin'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if($user->role == 'Superadmin'){
+            $histories = Transaction::with([
+                'course:id,title,price,thumbnail',
+                'course.items:id,course_item,type',
+                'student:id,username,email,avatar,info'
+            ])->get();
+        }else{
+            $histories = $user->myTransaction()->with([
+                'course:id,title,price,thumbnail',
+                'course.items:id,course_item,type'
+            ])->get();
+        }
+
+        return response()->json(['status' => true, 'data' => $histories], 200);
     }
 }

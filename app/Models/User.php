@@ -143,4 +143,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AssessmentHistory::class, 'user_id');
     }
+
+    public function myTransaction()
+    {
+        return $this->hasMany(Transaction::class, 'user_id');
+    }
 }
