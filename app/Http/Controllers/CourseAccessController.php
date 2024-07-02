@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CourseAccess;
+use App\Models\CourseFeedback;
 use App\Models\CourseItem;
 use App\Models\StudentProgress;
 use Illuminate\Support\Facades\Auth;
@@ -45,10 +46,12 @@ class CourseAccessController extends Controller
                 return $progresses->count();
             });
 
-        $my_courses->each(function ($course) use ($latest_progress, $completed_items) {
+        $my_courses->each(function ($course) use ($latest_progress, $completed_items, $user) {
             $course->latest_progress = $latest_progress->get($course->course_id);
             $course->completed_items = $completed_items->get($course->course_id, 0);
             $course->total_items = $course->course->items->count();
+            $course->feedback = CourseFeedback::where('user_id', $user->id)
+                                    ->where('course_id', $course->id)->first();
         });
 
         return response()->json(['status' => true, 'data' => $my_courses], 200);
