@@ -297,4 +297,28 @@ class LearningController extends Controller
             return response()->json(['status' => true, 'data' => $courses], 200);
         }
     }
+
+    public function getStudentListProgress(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role != 'Corporate Admin'){
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $students = $user->corporateStudents()->with(['courseAccesses', 'studentProgress'])->get();
+        $result = $students->map(function($student) {
+            $accessedCourses = $student->courseAccess->count();
+            $completedCourses = $student->studentProgress->where('is_done', true)->count();
+
+            return [
+                'id' => $student->id,
+                'info' => $student->info,
+                'accessed_courses' => $accessedCourses,
+                'completed_courses' => $completedCourses,
+            ];
+        });
+
+        return response()->json(['status' => true, 'data' => $result], 200);
+    }
 }

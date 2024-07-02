@@ -25,7 +25,7 @@ class RedeemCodeController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 402);
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
