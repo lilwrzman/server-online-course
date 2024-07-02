@@ -122,21 +122,26 @@ class LearningController extends Controller
     {
         $user = Auth::user();
         $item_id = $request->input('item_id');
+        $show_answer = $request->input('show_answer');
 
         if($user->role != 'Student'){
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         $validator = Validator::make($request->all(), [
-            'item_id' => 'required|int'
+            'item_id' => 'required|int',
+            'show_answer' => 'required'
         ]);
 
         if($validator->fails()){
             return response()->json(['error_validator' => $validator->errors()], 400);
         }
 
+        $what_to_select = $show_answer ? ['id', 'item_id', 'question', 'option', 'correct_answer'] : ['id', 'item_id', 'question', 'option'];
         $item = CourseItem::whereIn('type', ['Quiz', 'Exam'])
-            ->with(['questions'])
+            ->with(["questions" => function($query) use ($what_to_select){
+                $query->select($what_to_select);
+            }])
             ->findOrFail($item_id);
 
         return response()->json(['status' => true, 'data' => $item], 200);
