@@ -158,6 +158,7 @@ Route::group([
     Route::post("/student/learn", [LearningController::class, 'learning']);
     Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
     Route::get("/sudent/progress", [LearningController::class, 'getProgress']);
+    Route::get("/sudent/corporate/progress", [LearningController::class, 'getStudentListProgress']);
     Route::post("/student/assessment", [LearningController::class, 'getAssessment']);
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']);
     Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']);
