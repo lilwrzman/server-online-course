@@ -255,4 +255,46 @@ class LearningController extends Controller
 
         return response()->json(['status' => true, 'data' => $history], 200);
     }
+
+    public function getProgress(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role == 'Student'){
+            $courses = CourseAccess::where('user_id', $user->id)
+                ->with([
+                    'course:id,title,thumbnail,slug',
+                    'course.items:id,course_id,slug'
+                ])->get(['id', 'user_id', 'course_id', 'status', 'type', 'access_date']);
+
+            $itemIds = CourseItem::whereIn('course_id', $courses->pluck('course_id'))->pluck('id');
+
+            $completed_items = StudentProgress::whereIn('item_id', $itemIds)
+                ->where('user_id', $user->id)
+                ->get()
+                ->groupBy('item.course_id')
+                ->map(function ($progresses) {
+                    return $progresses->count();
+                });
+
+            $latest_progress = StudentProgress::whereIn('item_id', $itemIds)
+                ->where('user_id', $user->id)
+                ->select('item_id', 'created_at')
+                ->orderBy('created_at', 'desc')
+                ->with('item.course:id,title')
+                ->get()
+                ->groupBy('item.course_id')
+                ->map(function ($progresses) {
+                    return $progresses->first();
+                });
+
+            $courses->each(function ($course) use ($latest_progress, $completed_items) {
+                $course->latest_progress = $latest_progress->get($course->course_id);
+                $course->completed_items = $completed_items->get($course->course_id, 0);
+                $course->total_items = $course->course->items->count();
+            });
+
+            return response()->json(['status' => true, 'data' => $courses], 200);
+        }
+    }
 }
