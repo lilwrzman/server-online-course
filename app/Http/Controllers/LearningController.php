@@ -308,8 +308,8 @@ class LearningController extends Controller
 
         $students = $user->corporateStudents()->with(['courseAccesses'])->get();
         $result = $students->map(function($student) {
-            $accessedCourses = $student->courseAccess->count();
-            $completedCourses = $student->courseAccess->where('status', "Completed")->count();
+            $accessedCourses = $student->courseAccesses->count();
+            $completedCourses = $student->courseAccesses->where('status', "Completed")->count();
 
             return [
                 'id' => $student->id,
