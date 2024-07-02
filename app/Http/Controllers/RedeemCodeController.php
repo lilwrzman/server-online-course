@@ -15,12 +15,6 @@ class RedeemCodeController extends Controller
 {
     public static function show(Request $request)
     {
-        $cacheKey = 'redeem_' . $request->input('redeem_code');
-
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-
         $user = Auth::user();
         if(!$user->role === 'Student' && !$user->corporate_id){
             return response()->json(['error' => 'Unauthenticated.'], 401);
@@ -35,8 +29,6 @@ class RedeemCodeController extends Controller
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
-
-        Cache::put($cacheKey, response()->json(['status' => true, 'data' => $redeem]), 3600);
 
         return response()->json(['status' => true, 'data' => $redeem]);
     }
