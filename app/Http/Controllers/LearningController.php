@@ -306,10 +306,10 @@ class LearningController extends Controller
             return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $students = $user->corporateStudents()->with(['courseAccesses', 'studentProgress'])->get();
+        $students = $user->corporateStudents()->with(['courseAccesses'])->get();
         $result = $students->map(function($student) {
             $accessedCourses = $student->courseAccess->count();
-            $completedCourses = $student->studentProgress->where('is_done', true)->count();
+            $completedCourses = $student->courseAccess->where('status', "Completed")->count();
 
             return [
                 'id' => $student->id,
