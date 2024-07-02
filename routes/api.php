@@ -159,6 +159,7 @@ Route::group([
     Route::post("/student/assessment", [LearningController::class, 'getAssessment']);
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']);
     Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']);
+    Route::post("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
 });
 
 // End of Endpoint: Student

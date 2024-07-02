@@ -237,4 +237,17 @@ class LearningController extends Controller
 
         return response()->json(['status' => true, 'data' => $histories], 200);
     }
+
+    public function detailHistory($id)
+    {
+        $user = Auth::user();
+
+        if($user->role != 'Student'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $history = AssessmentHistory::findOrFail($id);
+
+        return response()->json(['status' => true, 'data' => $history], 200);
+    }
 }
