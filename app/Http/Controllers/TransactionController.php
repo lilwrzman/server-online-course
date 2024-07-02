@@ -151,7 +151,7 @@ class TransactionController extends Controller
         }else{
             $histories = $user->myTransaction()->with([
                 'course:id,title,price,thumbnail',
-                'course.items:id,course_item,type'
+                'course.items:id,course_id,type'
             ])->get();
         }
 
