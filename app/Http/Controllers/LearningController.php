@@ -198,6 +198,10 @@ class LearningController extends Controller
                 'item_id' => $item_id,
                 'is_done' => true
             ]);
+
+            $complete = CourseAccess::where('user_id', $user->id)
+                            ->where('course_id', $item->course_id)
+                            ->update(['status' => 'Completed']);
         }
 
         $result = "";
