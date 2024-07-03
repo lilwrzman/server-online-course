@@ -169,7 +169,7 @@ Route::group([
     "middleware" => ['auth:api']
 ], function(){
     Route::get("/corporate/student", [UserController::class, 'corporateStudentList']);
-    Route::get("/corporate/student/check", [UserController::class, 'checkByEmail']);
+    Route::post("/corporate/student/check", [UserController::class, 'checkByEmail']);
     Route::post("/corporate/student/add", [UserController::class, 'addToCorporate']);
 });
 // End of Endpoint: Student List
