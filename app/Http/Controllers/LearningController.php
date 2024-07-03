@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\CourseItem;
 use App\Models\StudentProgress;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -320,5 +321,55 @@ class LearningController extends Controller
         });
 
         return response()->json(['status' => true, 'data' => $result], 200);
+    }
+
+    public function getProgressDetail($id)
+    {
+        $user = Auth::user();
+
+        if($user->role != 'Corporate Admin'){
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $student = User::findOrFail($id);
+
+        $courses = CourseAccess::where('user_id', $id)
+            ->where('Type', 'Corporate')
+            ->with([
+                'course:id,title,thumbnail,slug',
+                'course.items:id,course_id,slug'
+            ])->get(['id', 'user_id', 'course_id', 'status', 'type', 'access_date']);
+
+        $itemIds = CourseItem::whereIn('course_id', $courses->pluck('course_id'))->pluck('id');
+
+        $completed_items = StudentProgress::whereIn('item_id', $itemIds)
+            ->where('user_id', $id)
+            ->get()
+            ->groupBy('item.course_id')
+            ->map(function ($progresses) {
+                return $progresses->count();
+            });
+
+        $latest_progress = StudentProgress::whereIn('item_id', $itemIds)
+            ->where('user_id', $id)
+            ->select('item_id', 'created_at')
+            ->orderBy('created_at', 'desc')
+            ->with('item.course:id,title')
+            ->get()
+            ->groupBy('item.course_id')
+            ->map(function ($progresses) {
+                return $progresses->first();
+            });
+
+        $courses->each(function ($course) use ($latest_progress, $completed_items) {
+            $course->latest_progress = $latest_progress->get($course->course_id);
+            $course->completed_items = $completed_items->get($course->course_id, 0);
+            $course->total_items = $course->course->items->count();
+        });
+
+        return response()->json(['status' => true, 'data' => [
+            "courses" => $courses,
+            "student" => $student
+        ]], 200);
     }
 }
