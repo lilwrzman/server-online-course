@@ -424,4 +424,58 @@ class UserController extends Controller
 
         return response()->json(['status' => true, 'data' => $students]);
     }
+
+    public function checkByEmail(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role != "Corporate Admin"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error' => $validator->errors()]);
+        }
+
+        $student = User::where('email', $request->input('email'))->first();
+
+        if(!$student){
+            return response()->json(['error' => "Akun dengan email {$request->input('email')} tidak ditemukan!"], 402);
+        }
+
+        return response()->json(['status' => true, 'data' => $student]);
+    }
+
+    public function addToCorporate(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role != "Corporate Admin"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|int'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error' => $validator->errors()]);
+        }
+
+        $student = User::where('id', $request->input('student_id'))
+                        ->where('role', 'Student')
+                        ->update([
+                            "corporate_id" => $user->id
+                        ]);
+
+        if(!$student){
+            return response()->json(['error' => "Gagal menambahkan akun karyawan ke mitra!"], 402);
+        }
+
+        return response()->json(['status' => true, 'message' => "Berhasil menambahkan karyawan ke mitra!"], 200);
+    }
 }
