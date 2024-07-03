@@ -22,8 +22,13 @@ class CourseBundleController extends Controller
 
         if($user->role === 'Superadmin'){
             $bundles = CourseBundle::with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])->get();
-            return response()->json(['data' => $bundles]);
+        }else{
+            $bundles = CourseBundle::where('corporate_id', $user->id)
+                        ->with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])
+                        ->get();
         }
+
+        return response()->json(['status' => true, 'data' => $bundles], 200);
     }
 
     public function show($id)
