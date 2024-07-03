@@ -418,6 +418,10 @@ class UserController extends Controller
 
         $students = $user->corporateStudents()->get();
 
+        foreach ($students as $student){
+            $student->corporate_course = $student->courseAccessesCorporate()->with(['course'])->get();
+        }
+
         return response()->json(['status' => true, 'data' => $students]);
     }
 }

@@ -86,6 +86,11 @@ class User extends Authenticatable
         return $this->hasMany(CourseAccess::class);
     }
 
+    public function courseAccessesCorporate()
+    {
+        return $this->hasMany(CourseAccess::class)->where('type', "Corporate");
+    }
+
     public function myCourses(){
         return $this->belongsToMany(Course::class, 'course_accesses')->withPivot('access_date');
     }
