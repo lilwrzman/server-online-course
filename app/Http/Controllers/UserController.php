@@ -407,4 +407,17 @@ class UserController extends Controller
     {
 
     }
+
+    public function corporateStudentList(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role != "Corporate Admin"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $students = $user->corporateStudents();
+
+        return response()->json(['status' => true, 'data' => $students]);
+    }
 }

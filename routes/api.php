@@ -156,17 +156,33 @@ Route::group([
 ], function(){
     Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']);
     Route::post("/student/learn", [LearningController::class, 'learning']);
-    Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
-    Route::get("/sudent/progress", [LearningController::class, 'getProgress']);
-    Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']);
-    Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']);
     Route::post("/student/assessment", [LearningController::class, 'getAssessment']);
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']);
     Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']);
     Route::post("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
 });
-
 // End of Endpoint: Student
+
+
+// Endpoint: Student List
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get("/corporate/student", [UserController::class, 'corporateStudentList']);
+});
+// End of Endpoint: Student List
+
+
+// Endpoint: Progress
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
+    Route::get("/sudent/progress", [LearningController::class, 'getProgress']);
+    Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']);
+    Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']);
+});
+// End of Endpoint: Progress
 
 // Endpoint: Events ⬜
 Route::get('/events', [EventController::class, 'index']);
