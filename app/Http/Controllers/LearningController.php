@@ -323,7 +323,7 @@ class LearningController extends Controller
         return response()->json(['status' => true, 'data' => $result], 200);
     }
 
-    public function getProgressDetail($id)
+    public function getStudentProgressDetail($id)
     {
         $user = Auth::user();
 
