@@ -416,7 +416,7 @@ class UserController extends Controller
             return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
-        $students = $user->corporateStudents();
+        $students = $user->corporateStudents()->get();
 
         return response()->json(['status' => true, 'data' => $students]);
     }
