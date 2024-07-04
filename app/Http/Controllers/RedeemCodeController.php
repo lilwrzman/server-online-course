@@ -65,10 +65,6 @@ class RedeemCodeController extends Controller
                 'type' => 'Corporate',
                 'access_date' => now()
             ]);
-
-            $course = Course::findOrFail($item->course->id);
-            $course->enrolled = $course->enrolled + 1;
-            $course->save();
         }
 
         $history = RedeemHistory::create([

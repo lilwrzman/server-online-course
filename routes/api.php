@@ -183,6 +183,8 @@ Route::group([
     Route::get("/sudent/progress", [LearningController::class, 'getProgress']);
     Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']);
     Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']);
+    Route::get("/course/progress", [LearningController::class, 'getCourseProgress']);
+    Route::get("/course/progress/detail/{id}", [LearningController::class, 'getCourseProgressDetail']);
 });
 // End of Endpoint: Progress
 

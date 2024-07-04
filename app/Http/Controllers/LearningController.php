@@ -372,4 +372,39 @@ class LearningController extends Controller
             "student" => $student
         ]], 200);
     }
+
+    public function getCourseProgress(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role !== 'Superadmin' && $user->role !== 'Teacher'){
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        if($user->role == "Superadmin"){
+            $courses = Course::all();
+        }else{
+            $courses = Course::where('teacher_id', $user->id)->get();
+        }
+
+        foreach($courses as $course){
+            $course->count_student = $course->courseAccesses()->count();
+            $course->count_student_complete = $course->courseAccesses()->where('status', 'Completed')->count();
+        }
+
+        return response()->json(['status' => true, 'data' => $courses], 200);
+    }
+
+    public function getCourseProgressDetail($id)
+    {
+        $user = Auth::user();
+
+        if($user->role !== 'Superadmin' && $user->role !== 'Teacher'){
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $course = Course::with(['courseAccesses'])->findOrFail($id);
+
+        return response()->json(['status' => true, 'data' => $course], 200);
+    }
 }
