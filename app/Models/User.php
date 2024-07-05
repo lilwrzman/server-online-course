@@ -83,7 +83,7 @@ class User extends Authenticatable
 
     public function courseAccesses()
     {
-        return $this->hasMany(CourseAccess::class);
+        return $this->hasMany(CourseAccess::class, 'user_id');
     }
 
     public function courseAccessesCorporate()
