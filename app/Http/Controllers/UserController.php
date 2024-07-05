@@ -417,9 +417,12 @@ class UserController extends Controller
             return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
-        $data = $user->courses()->with(['courseAccesses', 'courseAccesses.student'])->get();
+        $courses = Course::where('teacher_id', $user->id)->get();
+        $students = User::whereHas('myCourses', function($query) use ($courses) {
+            $query->whereIn('course_id', $courses->pluck('id'));
+        })->distinct()->get();
 
-        return response()->json(['status' => true, 'data' => $data], 200);
+        return response()->json(['status' => true, 'data' => $students], 200);
     }
 
     public function corporateStudentList(Request $request)
