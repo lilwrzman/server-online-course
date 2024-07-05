@@ -81,12 +81,16 @@ class RedeemCodeController extends Controller
         }
 
         foreach($redeem['courseBundle']['bundleItems'] as $item){
-            CourseAccess::create([
-                'user_id' => $user->id,
-                'course_id' => $item->course->id,
-                'type' => 'Corporate',
-                'access_date' => now()
-            ]);
+            $is_exist = CourseAccess::where('user_id', $user->id)->where('course_id', $item->course->id)->exists();
+
+            if(!$is_exist){
+                CourseAccess::create([
+                    'user_id' => $user->id,
+                    'course_id' => $item->course->id,
+                    'type' => 'Corporate',
+                    'access_date' => now()
+                ]);
+            }
         }
 
         $history = RedeemHistory::create([
