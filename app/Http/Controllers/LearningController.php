@@ -409,12 +409,12 @@ class LearningController extends Controller
             'courseAccesses.course',
         ])->findOrFail($id);
 
-        // foreach($course->course_accesses as $access){
-        //     $items_id = CourseItem::where('course_id', $access->course->id)->get(['id']);
-        //     $access->student->progress = StudentProgress::where('user_id', $access->student->id)
-        //                                     ->whereIn('item_id', $items_id->pluck('id'))
-        //                                     ->get();
-        // }
+        foreach($course['course_accesses'] as $access){
+            $items_id = CourseItem::where('course_id', $access->course->id)->get(['id']);
+            $access->student->progress = StudentProgress::where('user_id', $access->student->id)
+                                            ->whereIn('item_id', $items_id->pluck('id'))
+                                            ->get();
+        }
 
         return response()->json(['status' => true, 'data' => $course], 200);
     }
