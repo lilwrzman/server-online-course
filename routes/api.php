@@ -168,6 +168,7 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
+    Route::get("/teacher/student", [UserController::class, 'teacherStudent']);
     Route::get("/corporate/student", [UserController::class, 'corporateStudentList']);
     Route::post("/corporate/student/check", [UserController::class, 'checkByEmail']);
     Route::post("/corporate/student/add", [UserController::class, 'addToCorporate']);

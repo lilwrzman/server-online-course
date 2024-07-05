@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Referral;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -408,6 +409,19 @@ class UserController extends Controller
 
     }
 
+    public function teacherStudent(Request $request)
+    {
+        $user = Auth::user();
+
+        if($user->role != "Teacher"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $data = $user->courses()->with(['courseAccesses', 'courseAccesses.student'])->get();
+
+        return response()->json(['status' => true, 'data' => $data], 200);
+    }
+
     public function corporateStudentList(Request $request)
     {
         $user = Auth::user();
@@ -422,7 +436,7 @@ class UserController extends Controller
             $student->corporate_course = $student->courseAccessesCorporate()->get();
         }
 
-        return response()->json(['status' => true, 'data' => $students]);
+        return response()->json(['status' => true, 'data' => $students], 200);
     }
 
     public function checkByEmail(Request $request)
@@ -438,7 +452,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 402);
         }
 
         $student = User::where('email', $request->input('email'))->first();
@@ -447,7 +461,7 @@ class UserController extends Controller
             return response()->json(['error' => "Akun dengan email {$request->input('email')} tidak ditemukan!"], 402);
         }
 
-        return response()->json(['status' => true, 'data' => $student]);
+        return response()->json(['status' => true, 'data' => $student], 200);
     }
 
     public function addToCorporate(Request $request)
