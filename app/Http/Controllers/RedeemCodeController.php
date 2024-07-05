@@ -29,7 +29,7 @@ class RedeemCodeController extends Controller
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
-        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exist();
+        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exists();
 
         if(!$user->corporate_id){
             return response()->json(['error' => 'Anda tidak dapat akses ke kode tukar ini. Anda tidak/belum terhubung ke perusahaan mitra kami!'], 403);
@@ -62,7 +62,7 @@ class RedeemCodeController extends Controller
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
-        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exist();
+        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exists();
 
         if(!$user->corporate_id){
             return response()->json(['error' => 'Anda tidak dapat akses ke kode tukar ini. Anda tidak/belum terhubung ke perusahaan mitra kami!'], 402);
