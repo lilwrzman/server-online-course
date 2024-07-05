@@ -405,15 +405,14 @@ class LearningController extends Controller
 
         $course = Course::select(['id', 'title'])->with([
             'courseAccesses:id,course_id,user_id,status,type',
-            'courseAccesses.student',
-            'courseAccesses.course',
+            'courseAccesses.student:id,username,email,info',
         ])->findOrFail($id);
 
         foreach($course->courseAccesses as $access){
             $items_id = CourseItem::where('course_id', $access->course->id)->get(['id']);
             $access->student->progress = StudentProgress::where('user_id', $access->student->id)
                                             ->whereIn('item_id', $items_id->pluck('id'))
-                                            ->get();
+                                            ->count();
         }
 
         return response()->json(['status' => true, 'data' => $course], 200);
