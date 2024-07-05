@@ -403,7 +403,7 @@ class LearningController extends Controller
             return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $course = Course::select(['id', 'title'])->with([
+        $course = Course::select(['id', 'title', 'items'])->with([
             'courseAccesses:id,course_id,user_id,status,type',
             'courseAccesses.student:id,username,email,info',
         ])->findOrFail($id);
