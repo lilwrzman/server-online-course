@@ -16,7 +16,7 @@ class RedeemCodeController extends Controller
     public static function show(Request $request)
     {
         $user = Auth::user();
-        if(!$user->role === 'Student' && !$user->corporate_id){
+        if(!$user->role === 'Student'){
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
@@ -29,8 +29,21 @@ class RedeemCodeController extends Controller
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
+        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exist();
 
-        return response()->json(['status' => true, 'data' => $redeem]);
+        if(!$user->corporate_id){
+            return response()->json(['error' => 'Anda tidak dapat akses ke kode tukar ini. Anda tidak/belum terhubung ke perusahaan mitra kami!'], 403);
+        }
+
+        if($user->corporate_id != $redeem['courseBundle']['corporate_id']){
+            return response()->json(['error' => false, 'message' => 'Kode tukar ini bukan milik perusahaan anda!'], 402);
+        }
+
+        if($exist){
+            return response()->json(['error' => 'Anda telah menukar kode ini sebelumnya.'], 402);
+        }
+
+        return response()->json(['status' => true, 'data' => $redeem], 200);
     }
 
     public static function redeem(Request $request)
@@ -45,17 +58,26 @@ class RedeemCodeController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 402);
         }
 
         $redeem = RedeemCode::where('code', $request->input('redeem_code'))->with(['courseBundle.bundleItems.course'])->firstOrFail();
+        $exist = RedeemHistory::where('redeem_code_id', $redeem->id)->where('user_id', $user->id)->exist();
+
+        if(!$user->corporate_id){
+            return response()->json(['error' => 'Anda tidak dapat akses ke kode tukar ini. Anda tidak/belum terhubung ke perusahaan mitra kami!'], 402);
+        }
 
         if($user->corporate_id != $redeem['courseBundle']['corporate_id']){
-            return response()->json(['status' => false, 'message' => 'Kode tukar ini bukan milik perusahaan anda!']);
+            return response()->json(['error' => false, 'message' => 'Kode tukar ini bukan milik perusahaan anda!'], 402);
         }
 
         if($redeem->usage_count > $redeem['courseBundle']['quota']){
-            return response()->json(['status' => false, 'message' => 'Penukaran kode melampaui kuota penukaran bundel!']);
+            return response()->json(['error' => false, 'message' => 'Penukaran kode melampaui kuota penukaran bundel!'], 402);
+        }
+
+        if($exist){
+            return response()->json(['error' => 'Anda telah menukar kode ini sebelumnya.'], 402);
         }
 
         foreach($redeem['courseBundle']['bundleItems'] as $item){
@@ -75,6 +97,6 @@ class RedeemCodeController extends Controller
         $redeem->usage_count = $redeem->usage_count + 1;
         $redeem->save();
 
-        return response()->json(['status' => true, 'message' => 'Berhasil menukarkan bundel!']);
+        return response()->json(['status' => true, 'message' => 'Berhasil menukarkan bundel!'], 200);
     }
 }
