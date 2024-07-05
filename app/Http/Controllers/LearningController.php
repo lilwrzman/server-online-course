@@ -409,7 +409,7 @@ class LearningController extends Controller
         ])->findOrFail($id);
 
         foreach($course->courseAccesses as $access){
-            $items_id = CourseItem::where('course_id', $access->course->id)->get(['id']);
+            $items_id = CourseItem::where('course_id', $course->id)->get(['id']);
             $access->student->progress = StudentProgress::where('user_id', $access->student->id)
                                             ->whereIn('item_id', $items_id->pluck('id'))
                                             ->count();
