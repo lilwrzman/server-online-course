@@ -382,9 +382,9 @@ class LearningController extends Controller
         }
 
         if($user->role == "Superadmin"){
-            $courses = Course::all();
+            $courses = Course::all(['id', ['title']]);
         }else{
-            $courses = Course::where('teacher_id', $user->id)->get();
+            $courses = Course::where('teacher_id', $user->id)->get(['id', 'title']);
         }
 
         foreach($courses as $course){
