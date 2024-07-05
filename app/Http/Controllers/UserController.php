@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\CourseAccess;
 use App\Models\Referral;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -420,7 +421,13 @@ class UserController extends Controller
         $courses = Course::where('teacher_id', $user->id)->get();
         $students = User::whereHas('myCourses', function($query) use ($courses) {
             $query->whereIn('course_id', $courses->pluck('id'));
-        })->distinct()->get();
+        })->distinct()->get(['id', 'email', 'info']);
+
+        foreach($students as $student ){
+            $student->course_count = CourseAccess::where('user_id', $student->id)
+                                            ->whereIn('course_id', $courses->pluck('id'))
+                                            ->count();
+        }
 
         return response()->json(['status' => true, 'data' => $students], 200);
     }
