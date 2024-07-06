@@ -144,10 +144,9 @@ class TransactionController extends Controller
 
         if($user->role == 'Superadmin'){
             $histories = Transaction::with([
-                'course:id,title,price,thumbnail',
-                'course.items:id,course_id,type',
-                'student:id,username,email,avatar,info'
-            ])->get();
+                'course:id,title',
+                'student:id,username,email,info'
+            ])->get(['id', 'user_id', 'status', 'price']);
         }else{
             $histories = $user->myTransaction()->with([
                 'course:id,title,price,thumbnail',
