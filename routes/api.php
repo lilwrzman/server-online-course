@@ -142,6 +142,7 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
+    Route::get('/transaction/export', [TransactionController::class, 'export']);
     Route::get('/transaction/histories', [TransactionController::class, 'transactionHistory']);
     Route::post('/checkout/process', [TransactionController::class, 'process']);
     Route::post('/checkout/success/{id}', [TransactionController::class, 'success']);

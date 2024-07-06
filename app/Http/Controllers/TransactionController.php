@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TransactionExport;
 use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TransactionController extends Controller
 {
@@ -155,5 +157,20 @@ class TransactionController extends Controller
         }
 
         return response()->json(['status' => true, 'data' => $histories], 200);
+    }
+
+    public function export()
+    {
+        $user = Auth::user();
+
+        if($user->role != 'Superadmin'){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $fileName = uniqid() . '_transactions.xlsx';
+        $filePath = storage_path('app/' . $fileName);
+        Excel::store(new TransactionExport(), $fileName);
+
+        return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
     }
 }
