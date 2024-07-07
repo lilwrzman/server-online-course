@@ -7,6 +7,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\MyCoursesController;
@@ -163,6 +164,18 @@ Route::group([
     Route::post("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
 });
 // End of Endpoint: Student
+
+
+// Endpoint: Feedback
+Route::get("/course/{id}/feedback", [FeedbackController::class, 'courseFeedback']);
+
+Route::group([
+    "middleware" => ['auth:api']
+], function(){
+    Route::get("/course/{id}/student/feedback", [FeedbackController::class, 'studentFeedback']);
+    Route::post("/course/feedback/post", [FeedbackController::class, 'postFeedback']);
+});
+// End of Endpoint: Feedback
 
 
 // Endpoint: Student List

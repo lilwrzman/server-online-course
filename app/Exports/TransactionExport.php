@@ -26,11 +26,11 @@ class TransactionExport implements FromCollection, WithHeadings, WithMapping, Sh
     {
         return [
             $transaction->id,
-            Carbon::parse($transaction->created_at)->format('d F Y'), // Format tanggal
-            $transaction->student->info['fullname'], // Nama karyawan
-            $transaction->course->title, // Nama materi
+            Carbon::parse($transaction->created_at)->format('d F Y'),
+            $transaction->student->info['fullname'],
+            $transaction->course->title,
             $transaction->price,
-            $transaction->status == 'success' ? 'Sukses' : ($transaction->status == 'fail' ? 'Gagal' : 'Pending') // Status
+            $transaction->status == 'success' ? 'Sukses' : ($transaction->status == 'fail' ? 'Gagal' : 'Pending')
         ];
     }
 

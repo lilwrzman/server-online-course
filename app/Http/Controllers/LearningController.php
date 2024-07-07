@@ -25,9 +25,8 @@ class LearningController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $course = Course::where('slug', $request->input('course'))
-            ->select('id', 'title', 'description', 'slug')
-            ->firstOrFail();
+        $course = Course::select('id', 'title', 'description', 'slug')
+            ->findOrFail($request->input('course'));
 
         if(!$user->hasAccessToCourse($course->id)){
             return response()->json(['error' => 'Unauthorized'], 401);
