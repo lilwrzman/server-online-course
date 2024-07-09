@@ -10,12 +10,7 @@ class Event extends Model
 {
     use HasFactory, Sluggable;
 
-    protected $fillable = [
-        'title', 'content', 'thumbnail',
-        'quota', 'type', 'status', 'info'
-    ];
-
-    protected $casts = ['info' => 'json'];
+    protected $fillable = [ 'title', 'place', 'date', 'start', 'end', 'link', 'slug', 'thumbnail' ];
 
     public function sluggable(): array
     {
