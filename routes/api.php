@@ -6,6 +6,7 @@ use App\Http\Controllers\CourseBundleController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseItemController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LearningController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\MyCoursesController;
 use App\Http\Controllers\RedeemCodeController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -203,9 +205,25 @@ Route::group([
 });
 // End of Endpoint: Progress
 
+
+// Endpoint: Discussion
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::get("/course/{id}/discussion", [DiscussionController::class, 'courseDiscussion']);
+    Route::post("/discussion/post", [DiscussionController::class, 'postDiscussion']);
+});
+// End of Endpoint: Discussion
+
 // Endpoint: Events ⬜
-Route::get('/events', [EventController::class, 'index']);
-Route::get('/events/{id}', [EventController::class, 'show']);
-Route::post('/events', [EventController::class, 'store']);
-Route::put('/events/{id}', [EventController::class, 'update']);
-Route::delete('/events/{id}', [EventController::class, 'destroy']);
+Route::get('/events/get', [EventController::class, 'index']);
+Route::get('/event/get/{id}', [EventController::class, 'show']);
+
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::post('/event/add', [EventController::class, 'store']);
+    Route::post('/event/update', [EventController::class, 'update']);
+    Route::post('/event/change-thumbnail', [EventController::class, 'changeThumbnail']);
+    Route::post('/event/delete', [EventController::class, 'destroy']);
+});

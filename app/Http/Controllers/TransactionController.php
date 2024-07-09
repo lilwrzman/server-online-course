@@ -148,7 +148,7 @@ class TransactionController extends Controller
             $histories = Transaction::with([
                 'course:id,title',
                 'student:id,username,email,info'
-            ])->get(['id', 'user_id', 'status', 'price', 'course_id']);
+            ])->get(['id', 'user_id', 'status', 'price', 'course_id', 'created_at']);
         }else{
             $histories = $user->myTransaction()->with([
                 'course:id,title,price,thumbnail',

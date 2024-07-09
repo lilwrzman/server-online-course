@@ -19,6 +19,10 @@ class CourseController extends Controller
         $data = [];
         $data['courses'] = Course::with(['learningPath:id,title,color'])->get();
 
+        foreach($data['courses'] as $course){
+            $course['items'] = $course->items()->count();
+        }
+
         if($user){
             $role = $user->role;
             if($role == 'Teacher'){

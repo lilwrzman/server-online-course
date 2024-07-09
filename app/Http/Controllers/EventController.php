@@ -3,57 +3,163 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class EventController extends Controller
 {
     public function index()
     {
-        $events = Event::all();
+        $events = Event::orderBy('created_at', 'desc')->get();
 
-        return response()->json(['data' => $events], 200);
+        return response()->json(['status' => true, 'data' => $events], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        Event::create($request->all());
+        $user = Auth::user();
 
-        return response()->json(['msg' => 'Event data created successfully.'], 201);
+        if($user->role !== "Superadmin"){
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string',
+            'place' => 'required|string',
+            'date' => 'required|date',
+            'start' => 'required|date_format:H:i',
+            'end' => 'required|date_format:H:i',
+            'link' => 'nullable|url'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $field = $request->all();
+
+        if($request->hasFile('thumbnail_file')){
+            $thumbnail = $request->file('thumbnail_file');
+            $thumbnailPath = $thumbnail->storeAs(
+                'events',
+                uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
+            );
+
+            $field['thumbnail'] = $thumbnailPath;
+        }
+
+        $event = Event::create($field);
+
+        if(!$event){
+            return response()->json(['error' => 'Gagal menyimpan acara!'], 500);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Data acara berhasil dibuat!'], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $event = Event::findOrFail($id);
 
-        return response()->json(['data' => $event], 200);
+        return response()->json(['status' => true, 'data' => $event], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $event = Event::findOrFail($id);
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|int',
+            'title' => 'required|string|unique:events,title,' . $request->input('id'),
+            'place' => 'required|string',
+            'date' => 'required|date',
+            'start' => 'required|date_format:H:i',
+            'end' => 'required|date_format:H:i',
+            'link' => 'nullable|url'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $event = Event::findOrFail($request->input('id'));
         $event->slug = null;
         $event->update($request->all());
 
-        return response()->json(['msg' => 'Event data updated successfully.'], 201);
+        return response()->json(['status' => true, 'message' => 'Data acara berhasil diubah!'], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $event = Event::findOrFail($id);
-        $event->delete();
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
 
-        return response()->json(['msg' => 'Event data deleted successfully.'], 200);
+        DB::beginTransaction();
+
+        try {
+            $event = Event::findOrFail($request->input('id'));
+
+            if (Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'thumbnail.png')) {
+                Storage::delete('public/' . $event->thumbnail);
+            }
+
+            $event->delete();
+
+            DB::commit();
+
+            return response()->json(['status' => true, 'message' => 'Berhasil menghapus Acara.'], 200);
+        } catch (QueryException $e) {
+            DB::rollBack();
+
+            return response()->json(['error' => 'Gagal menghapus Acara.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Gagal menghapus Acara.']);
+        }
+    }
+
+    public function changeThumbnail(Request $request)
+    {
+        $user = Auth::user();
+        if(!$user->role === 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'thumbnail_file' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'thumbnail_file.required' => 'Mohon pilih foto thumbnail acara.',
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $event = Event::findOrFail($request->input('id'));
+
+        if(Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'default.png')){
+            Storage::delete('public/' . $event->thumbnail);
+        }
+
+        $avatar = $request->file('thumbnail_file');
+        $avatarPath = $avatar->storeAs(
+            'events',
+            uniqid() . '_' . time() . '.' . $avatar->getClientOriginalExtension(), 'public'
+        );
+
+        $event->thumbnail = $avatarPath;
+        $event->save();
+
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah foto thumbnail acara.']);
     }
 }

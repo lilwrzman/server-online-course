@@ -12,12 +12,15 @@ class FeedbackController extends Controller
 {
     public function courseFeedback($id)
     {
-        $feedbacks = CourseFeedback::where('course_id', $id)
-            ->with(['user:id,email,info,avatar', 'course:id,title'])
-            ->latest()->take(3)
-            ->get(['id', 'user_id', 'course_id', 'rating', 'review', 'created_at']);
+        $datas = Course::select('id', 'title')->with([
+            'feedbacks' => function($query){
+                $query->select('id', 'user_id', 'course_id', 'rating', 'review', 'created_at')
+                    ->orderBy('created_at', 'desc');
+            },
+            'feedbacks.user:id,email,avatar,info',
+        ])->findOrFail($id);
 
-        return response()->json(['status' => true, 'data' => $feedbacks], 200);
+        return response()->json(['status' => true, 'data' => $datas], 200);
     }
 
     public function studentFeedback($id)
