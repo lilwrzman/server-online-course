@@ -227,7 +227,10 @@ class UserController extends Controller
         }else if($role == 'Student'){
             $info = ['fullname' => $request->input('fullname')];
         }else if($role == 'Teacher'){
-            $info = ['fullname' => $request->input('fullname')];
+            $info = [
+                'fullname' => $request->input('fullname'),
+                'bio' => ""
+            ];
             $info['social_media'] = [
                 [
                     "type" => 'Facebook',
@@ -335,6 +338,11 @@ class UserController extends Controller
             $info = ['fullname' => $request->input('fullname')];
         }else if($user->role == 'Teacher'){
             $info = ['fullname' => $request->input('fullname')];
+
+            if($request->input('bio')){
+                $info['bio'] = $request->input('bio');
+            }
+
             $info['social_media'] = [
                 [
                     "type" => 'Facebook',
