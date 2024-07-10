@@ -158,4 +158,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Discussion::class);
     }
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class, 'author_id');
+    }
+
+    public function notifications()
+    {
+        return $this->belongsToMany(Notification::class, 'user_notifications')->withPivot('is_seen')->withTimestamps();
+    }
 }

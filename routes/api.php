@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseAccessController;
 use App\Http\Controllers\CourseBundleController;
@@ -215,7 +216,7 @@ Route::group([
 });
 // End of Endpoint: Discussion
 
-// Endpoint: Events ⬜
+// Endpoint: Events
 Route::get('/events/get', [EventController::class, 'index']);
 Route::get('/event/get/{id}', [EventController::class, 'show']);
 
@@ -227,3 +228,18 @@ Route::group([
     Route::post('/event/change-thumbnail', [EventController::class, 'changeThumbnail']);
     Route::post('/event/delete', [EventController::class, 'destroy']);
 });
+// End of Endpoint: Events
+
+// Endpoint: Articles
+Route::get('/articles/get', [ArticleController::class, 'index']);
+Route::get('/article/get/{id}', [ArticleController::class, 'show']);
+
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::post('/article/add', [ArticleController::class, 'store']);
+    Route::post('/article/update', [ArticleController::class, 'update']);
+    Route::post('/article/change-thumbnail', [ArticleController::class, 'changeThumbnail']);
+    Route::post('/article/delete', [ArticleController::class, 'destroy']);
+});
+// End of Endpoint: Articles

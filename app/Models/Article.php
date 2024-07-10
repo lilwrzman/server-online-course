@@ -6,16 +6,10 @@ use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Blog extends Model
+class Article extends Model
 {
     use HasFactory, Sluggable;
-
-    protected $fillable = ['author_id', 'title', 'content', 'slug', 'thumbnail'];
-
-    public function author()
-    {
-        return $this->belongsTo('App\Models\User', 'author_id');
-    }
+    protected $fillable = ['author_id', 'title', 'content', 'thumbnail', 'slug'];
 
     public function sluggable(): array
     {
@@ -24,5 +18,10 @@ class Blog extends Model
                 'source' => 'title'
             ]
         ];
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
+use App\Models\Article;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-class EventController extends Controller
+class ArticleController extends Controller
 {
     public function index()
     {
-        $events = Event::orderBy('created_at', 'desc')->get();
+        $articles = Article::orderBy('created_at', 'desc')->get();
 
-        return response()->json(['status' => true, 'data' => $events], 200);
+        return response()->json(['status' => true, 'data' => $articles], 200);
     }
 
     public function store(Request $request)
@@ -31,11 +31,7 @@ class EventController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
-            'place' => 'required|string',
-            'date' => 'required|date',
-            'start' => 'required|date_format:H:i',
-            'end' => 'required|date_format:H:i',
-            'link' => 'nullable|url'
+            'content' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -47,25 +43,25 @@ class EventController extends Controller
         if($request->hasFile('thumbnail_file')){
             $thumbnail = $request->file('thumbnail_file');
             $thumbnailPath = $thumbnail->storeAs(
-                'events',
+                'articles',
                 uniqid() . '_' . time() . '.' . $thumbnail->getClientOriginalExtension(), 'public'
             );
 
             $field['thumbnail'] = $thumbnailPath;
         }
 
-        $event = Event::create($field);
+        $article = Article::create($field);
 
-        if(!$event){
-            return response()->json(['error' => 'Gagal menyimpan acara!'], 500);
+        if(!$article){
+            return response()->json(['error' => 'Gagal menyimpan artikel!'], 500);
         }
 
         $notification = Notification::create([
-            'title' => 'Acara Baru',
-            'message' => 'Ada acara baru yang nih, penasaran? Yuk cek sekarang!',
+            'title' => 'Artikel Baru',
+            'message' => 'Ada artikel baru yang terbit nih, penasaran? Yuk cek sekarang!',
             'info' => [
-                "menu" => "events",
-                "event_id" => $event->id
+                "menu" => "articles",
+                "article_id" => $article->id
             ]
         ]);
 
@@ -73,14 +69,14 @@ class EventController extends Controller
 
         $notification->assignToUsers($users);
 
-        return response()->json(['status' => true, 'message' => 'Data acara berhasil dibuat!'], 201);
+        return response()->json(['status' => true, 'message' => 'Data artikel berhasil dibuat!'], 201);
     }
 
     public function show($id)
     {
-        $event = Event::findOrFail($id);
+        $article = Article::findOrFail($id);
 
-        return response()->json(['status' => true, 'data' => $event], 200);
+        return response()->json(['status' => true, 'data' => $article], 200);
     }
 
     public function update(Request $request)
@@ -92,34 +88,30 @@ class EventController extends Controller
 
         $validator = Validator::make($request->all(), [
             'id' => 'required|int',
-            'title' => 'required|string|unique:events,title,' . $request->input('id'),
-            'place' => 'required|string',
-            'date' => 'required|date',
-            'start' => 'required|date_format:H:i',
-            'end' => 'required|date_format:H:i',
-            'link' => 'nullable|url'
+            'title' => 'required|string|unique:articles,title,' . $request->input('id'),
+            'content' => 'required|string'
         ]);
 
         if($validator->fails()){
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $event = Event::findOrFail($request->input('id'));
-        $event->slug = null;
-        $event->update($request->all());
+        $article = Article::findOrFail($request->input('id'));
+        $article->slug = null;
+        $article->update($request->all());
 
         $notification = Notification::create([
-            'title' => 'Update Acara',
-            'message' => 'Anda telah telah melakukan update data acara. Yuk cek sekarang!',
+            'title' => 'Update Artikel',
+            'message' => 'Anda telah telah melakukan update data artikel. Yuk cek sekarang!',
             'info' => [
-                "menu" => "events",
-                "event_id" => $event->id
+                "menu" => "articles",
+                "article_id" => $article->id
             ]
         ]);
 
         $notification->assignToUsers($user);
 
-        return response()->json(['status' => true, 'message' => 'Data acara berhasil diubah!'], 201);
+        return response()->json(['status' => true, 'message' => 'Data artikel berhasil diubah!'], 201);
     }
 
     public function destroy(Request $request)
@@ -132,24 +124,24 @@ class EventController extends Controller
         DB::beginTransaction();
 
         try {
-            $event = Event::findOrFail($request->input('id'));
+            $article = Article::findOrFail($request->input('id'));
 
-            if (Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'thumbnail.png')) {
-                Storage::delete('public/' . $event->thumbnail);
+            if (Storage::exists('public/' . $article->thumbnail) && !str_contains($article->thumbnail, 'thumbnail.png')) {
+                Storage::delete('public/' . $article->thumbnail);
             }
 
-            $event->delete();
+            $article->delete();
 
             DB::commit();
 
-            return response()->json(['status' => true, 'message' => 'Berhasil menghapus Acara.'], 200);
+            return response()->json(['status' => true, 'message' => 'Berhasil menghapus Artikel.'], 200);
         } catch (QueryException $e) {
             DB::rollBack();
 
-            return response()->json(['error' => 'Gagal menghapus Acara.']);
+            return response()->json(['error' => 'Gagal menghapus Artikel.']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Gagal menghapus Acara.']);
+            return response()->json(['error' => 'Gagal menghapus Artikel.']);
         }
     }
 
@@ -164,28 +156,28 @@ class EventController extends Controller
             'id' => 'required',
             'thumbnail_file' => 'required|image|mimes:jpeg,png,jpg|max:2048'
         ], [
-            'thumbnail_file.required' => 'Mohon pilih foto thumbnail acara.',
+            'thumbnail_file.required' => 'Mohon pilih foto thumbnail artikel.',
         ]);
 
         if($validator->fails()){
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $event = Event::findOrFail($request->input('id'));
+        $article = Article::findOrFail($request->input('id'));
 
-        if(Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'default.png')){
-            Storage::delete('public/' . $event->thumbnail);
+        if(Storage::exists('public/' . $article->thumbnail) && !str_contains($article->thumbnail, 'default.png')){
+            Storage::delete('public/' . $article->thumbnail);
         }
 
         $avatar = $request->file('thumbnail_file');
         $avatarPath = $avatar->storeAs(
-            'events',
+            'articles',
             uniqid() . '_' . time() . '.' . $avatar->getClientOriginalExtension(), 'public'
         );
 
-        $event->thumbnail = $avatarPath;
-        $event->save();
+        $article->thumbnail = $avatarPath;
+        $article->save();
 
-        return response()->json(['status' => true, 'message' => 'Berhasil mengubah foto thumbnail acara.']);
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah foto thumbnail artikel.'], 200);
     }
 }
