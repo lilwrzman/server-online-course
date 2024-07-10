@@ -362,8 +362,8 @@ class UserController extends Controller
 
     public function updateAvatar(Request $request)
     {
+        $user = Auth::user();
         $validator = Validator::make($request->all(), [
-            'id' => 'required',
             'avatar_file' => 'required|image|mimes:jpeg,png,jpg|max:2048'
         ], [
             'avatar_file.required' => 'Mohon pilih foto profil.',
@@ -373,7 +373,7 @@ class UserController extends Controller
             return response()->json(['error' => $validator->errors()]);
         }
 
-        $user = User::findOrFail($request->input('id'));
+        $user = $request->input('id') ? User::findOrFail($request->input('id')) : $user->id;
 
         if(Storage::exists('public/' . $user->avatar) && !str_contains($user->avatar, 'default.png')){
             Storage::delete('public/' . $user->avatar);
