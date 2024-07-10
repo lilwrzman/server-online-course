@@ -405,9 +405,22 @@ class UserController extends Controller
         }
     }
 
-    public function changeStatus($id)
+    public function changeStatus(Request $request, $id)
     {
+        $user = Auth::user();
+        if(!$user->role == 'Superadmin'){
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
 
+        $update = User::findOrFail($id)->update([
+            "status" => $request->input('status')
+        ]);
+
+        if(!$update){
+            return response()->json(['error' => 'Gagal mengubah status akun'], 500);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Berhasil mengubah status akun!'], 201);
     }
 
     public function teacherStudent(Request $request)
