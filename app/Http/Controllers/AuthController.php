@@ -107,6 +107,13 @@ class AuthController extends Controller
                 ]);
             }
 
+            if($user->status != 'Active'){
+                return response()->json([
+                    'status' => false,
+                    'msg' => 'Akun anda tidak aktif, hubungi admin untuk mengaktifkan akun anda!'
+                ]);
+            }
+
             if($user->role == 'Student'){
                 $userData = json_encode([
                     'avatar' => $user->avatar,
