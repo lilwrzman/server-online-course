@@ -39,6 +39,7 @@ class ArticleController extends Controller
         }
 
         $field = $request->all();
+        $field['author_id'] = $user->id;
 
         if($request->hasFile('thumbnail_file')){
             $thumbnail = $request->file('thumbnail_file');
