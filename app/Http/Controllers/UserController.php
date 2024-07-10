@@ -373,7 +373,7 @@ class UserController extends Controller
             return response()->json(['error' => $validator->errors()]);
         }
 
-        $user = $request->input('id') ? User::findOrFail($request->input('id')) : $user->id;
+        $user = $request->input('id') ? User::findOrFail($request->input('id')) : $user;
 
         if(Storage::exists('public/' . $user->avatar) && !str_contains($user->avatar, 'default.png')){
             Storage::delete('public/' . $user->avatar);
