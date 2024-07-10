@@ -166,7 +166,7 @@ class ArticleController extends Controller
 
         $article = Article::findOrFail($request->input('id'));
 
-        if(Storage::exists('public/' . $article->thumbnail) && !str_contains($article->thumbnail, 'default.png')){
+        if(Storage::exists('public/' . $article->thumbnail) && !str_contains($article->thumbnail, 'thumbnail.png')){
             Storage::delete('public/' . $article->thumbnail);
         }
 
