@@ -75,7 +75,7 @@ class ArticleController extends Controller
 
     public function show($id)
     {
-        $article = Article::findOrFail($id);
+        $article = Article::with(['author:id,username,email,avatar'])->findOrFail($id);
 
         return response()->json(['status' => true, 'data' => $article], 200);
     }
