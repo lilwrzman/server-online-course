@@ -60,9 +60,6 @@ Route::group([
     Route::post('/account/add', [UserController::class, 'create']); // 🟩
     Route::post('/account/update', [UserController::class, 'update']); // 🟩
     Route::post('/account/update/avatar', [UserController::class, 'updateAvatar']); // 🟩
-    // Route::post('/account/delete', [UserController::class, 'delete']); // 🟩
-
-    // TO DO
     Route::post('/account/{id}/change-status', [UserController::class, 'changeStatus']);
 });
 // End of Endpoint: Account Management

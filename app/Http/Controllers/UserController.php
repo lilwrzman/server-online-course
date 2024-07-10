@@ -251,13 +251,22 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
-        $user = User::findOrFail($request->input('id'));
+        $user = $request->input('id') ? User::findOrFail($request->input('id')) : Auth::user();
         $info = [];
         $role = $user->role;
         $validate_rules = [];
         $validate_message = [];
 
-        if($role == 'Corporate Admin'){
+        if($role == 'Superadmin'){
+            $validate_rules = [
+                'username' => 'required|string|unique:users,username,' . $user->id
+            ];
+
+            $validate_message = [
+                'username.required' => 'Mohon masukkan username',
+                'username.unique' => 'Username sudah digunakan'
+            ];
+        }elseif($role == 'Corporate Admin'){
             $validate_rules = [
                 'name' => 'required|string|max:255',
                 'address' => 'required|string|max:255',
