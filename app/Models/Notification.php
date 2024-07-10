@@ -21,10 +21,10 @@ class Notification extends Model
     public function assignToUsers($users): void
     {
         if($users instanceof User) {
-            $users->notifications()->attatch($this->id);
+            $users->notifications()->attach($this->id);
         } elseif($users instanceof Collection) {
             foreach($users as $user){
-                $user->notifications()->attatch($this->id);
+                $user->notifications()->attach($this->id);
             }
         } else {
             throw new \InvalidArgumentException("Parameter mush be instance of User or Collection");
