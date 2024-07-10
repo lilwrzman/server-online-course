@@ -350,7 +350,7 @@ class UserController extends Controller
         $field = [
             'corporate_id' => $request->input('corporate_id') == null ||
                 $request->input('corporate_id') == 'null' ? null : $request->input('corporate_id'),
-            'email' => $request->input('email'),
+            'email' => $request->input('email') ? $request->input('email') : $user->email,
             'username' => $request->input('username'),
             'info' => $info
         ];
