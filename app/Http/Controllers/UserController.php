@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -523,5 +524,28 @@ class UserController extends Controller
         }
 
         return response()->json(['status' => true, 'message' => "Berhasil menambahkan karyawan ke mitra!"], 200);
+    }
+
+    public function passwordReset(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'old_password' => 'required|string|min:8|max:16',
+            'new_password' => 'required|string|min:8|max:16|confirmed'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['errors' => $validator->errors()]);
+        }
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json(['error' => 'Kata Sandi yang anda masukkan tidak cocok dengan kata sandi akun anda saat ini!'], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['status' => true, 'message' => "Kata sandi anda berhasil diubah!"], 201);
     }
 }

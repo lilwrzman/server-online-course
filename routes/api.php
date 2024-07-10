@@ -45,6 +45,7 @@ Route::post('/login', [AuthController::class, 'login']); // 🟩
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
+    Route::post("/password-reset", [UserController::class, 'passwordReset']);
     Route::get('/profile', [UserController::class, 'profile']); // 🟩
     Route::get('/logout', [AuthController::class, 'logout']); // 🟩
 });
