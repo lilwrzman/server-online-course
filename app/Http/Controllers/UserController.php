@@ -536,7 +536,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['errors' => $validator->errors()]);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
         if (!Hash::check($request->old_password, $user->password)) {
