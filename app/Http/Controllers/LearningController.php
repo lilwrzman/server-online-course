@@ -213,7 +213,7 @@ class LearningController extends Controller
             $course = Course::findOrFail($item->course_id);
             $completionDate = now();
             $certificateService = new CertificateService();
-            $certificatePath = $certificateService->generateCertificate($user->info->fullname, $course->title, $completionDate);
+            $certificatePath = $certificateService->generateCertificate($user->info['fullname'], $course->title, $completionDate);
             $certificate = Certificate::create([
                 "course_id" => $item->course_id,
                 "student_id" => $user->id,
