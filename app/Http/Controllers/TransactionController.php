@@ -171,6 +171,12 @@ class TransactionController extends Controller
         $filePath = storage_path('app/' . $fileName);
         Excel::store(new TransactionExport(), $fileName);
 
-        return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => 0
+        ])->deleteFileAfterSend(true);
     }
 }
