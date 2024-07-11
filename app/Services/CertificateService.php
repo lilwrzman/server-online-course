@@ -42,6 +42,6 @@ class CertificateService
 
         $image->save($outputPath);
 
-        return $outputPath;
+        return 'certificates/' . $fileName;
     }
 }
