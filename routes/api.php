@@ -242,5 +242,9 @@ Route::group([
 // End of Endpoint: Articles
 
 
-// Testing
-Route::post('/certificate/generate', [CertificateController::class, 'generate']);
+// Certificate
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::get('/certificate/{course_id}', [CertificateController::class, 'get']);
+});

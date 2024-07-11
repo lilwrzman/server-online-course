@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Certificate;
 use App\Services\CertificateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class CertificateController extends Controller
 {
@@ -15,5 +18,24 @@ class CertificateController extends Controller
         );
 
         return response()->json(['status' => true, 'path' => $certificatePath], 200);
+    }
+
+    public function get($course_id)
+    {
+        $user = Auth::user();
+
+        if($user->role != 'Student'){
+            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $certificate = Certificate::where('student_id', $user->id)
+                            ->where('course_id', $course_id)
+                            ->firstOrFail();
+
+        if(!Storage::exists($certificate->certificate)){
+            return response()->json(['error' => 'Sertifikat tidak ditemukan!'], 404);
+        }
+
+        return response()->download(storage_path($certificate->certificate));
     }
 }
