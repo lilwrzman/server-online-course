@@ -12,7 +12,7 @@ class CertificateService
         $fontRegular = storage_path('app/fonts/Poppins-Regular.ttf');
         $templatePath = storage_path('app/templates/certificate.png');
         $fileName = strtolower(str_replace(' ', '_', $fullName)) . '_' . uniqid() . '.png';
-        $outputPath = storage_path('app/public/certificates/' . $fileName);
+        $outputPath = storage_path('app/certificates/' . $fileName);
 
         $image = Image::read($templatePath);
 
