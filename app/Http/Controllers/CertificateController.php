@@ -40,7 +40,7 @@ class CertificateController extends Controller
 
         return response()->download($filePath, explode('/', $certificate->certificate)[1], [
             'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="'.explode('/', $certificate->certificate)[1].'"',
+            'Content-Disposition' => 'attachment;filename="'.explode('/', $certificate->certificate)[1].'"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => 0

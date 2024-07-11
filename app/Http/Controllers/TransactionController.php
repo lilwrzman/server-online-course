@@ -173,7 +173,7 @@ class TransactionController extends Controller
 
         return response()->download($filePath, $fileName, [
             'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment;filename="'.$fileName.'"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => 0
