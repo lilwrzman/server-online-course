@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentHistory;
 use App\Models\AssessmentQuestion;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\CourseItem;
 use App\Models\StudentProgress;
 use App\Models\User;
+use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -207,6 +209,17 @@ class LearningController extends Controller
             $complete = CourseAccess::where('user_id', $user->id)
                             ->where('course_id', $item->course_id)
                             ->update(['status' => 'Completed']);
+
+            $course = Course::findOrFail($item->course_id);
+            $completionDate = now();
+            $certificateService = new CertificateService();
+            $certificatePath = $certificateService->generateCertificate($user->info->fullname, $course->title, $completionDate);
+            $certificate = Certificate::create([
+                "course_id" => $item->course_id,
+                "student_id" => $user->id,
+                "completion_date" => $completionDate,
+                "certificate" => $certificatePath
+            ]);
         }
 
         $result = "";

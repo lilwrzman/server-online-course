@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseAccessController;
 use App\Http\Controllers\CourseBundleController;
 use App\Http\Controllers\CourseController;
@@ -12,11 +13,9 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningPathController;
-use App\Http\Controllers\MyCoursesController;
 use App\Http\Controllers\RedeemCodeController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
-use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -241,3 +240,7 @@ Route::group([
     Route::post('/article/delete', [ArticleController::class, 'destroy']);
 });
 // End of Endpoint: Articles
+
+
+// Testing
+Route::post('/certificate/generate', [CertificateController::class, 'generate']);

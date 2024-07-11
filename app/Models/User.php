@@ -168,4 +168,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Notification::class, 'user_notifications')->withPivot('is_seen')->withTimestamps();
     }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class, 'student_id');
+    }
 }
