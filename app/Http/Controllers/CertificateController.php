@@ -32,10 +32,12 @@ class CertificateController extends Controller
                             ->where('course_id', $course_id)
                             ->firstOrFail();
 
-        if(!Storage::exists($certificate->certificate)){
+        $filePath = storage_path($certificate->certificate);
+
+        if(!file_exists($filePath)){
             return response()->json(['error' => 'Sertifikat tidak ditemukan!'], 404);
         }
 
-        return response()->download(storage_path($certificate->certificate));
+        return response()->download($filePath);
     }
 }
