@@ -58,20 +58,24 @@ class DiscussionController extends Controller
             return response()->json(['error' => 'Gagal menambah data diskusi!'], 500);
         }
 
-        if($request->input('parent_id') && $request->input('parent_id') != $user->id){
-            $parent = User::findOrFail($request->input('parent_id'));
-            $course = Course::findOrFail($request->input('course_id'));
-            $notification = Notification::create([
-                'title' => 'Forum Diskusi',
-                'message' => 'Pengguna akun dengan username ' . $user->username . ' membalas diskusi anda pada materi ' . $course->title . '!',
-                'info' => [
-                    "target" => [strtolower($parent->role)],
-                    "menu" => "discussion",
-                    "course_id" => $course->id
-                ]
-            ]);
+        if($request->input('parent_id')){
+            $paretDiscuss = Discussion::findOrFail($request->input('parent_id'));
+            $parent = User::findOrFail($paretDiscuss->user_id);
 
-            $notification->assignToUsers($parent);
+            if($user->id != $parent->id){
+                $course = Course::findOrFail($request->input('course_id'));
+                $notification = Notification::create([
+                    'title' => 'Forum Diskusi',
+                    'message' => 'Pengguna akun dengan username ' . $user->username . ' membalas diskusi anda pada materi ' . $course->title . '!',
+                    'info' => [
+                        "target" => [strtolower($parent->role)],
+                        "menu" => "discussion",
+                        "course_id" => $course->id
+                    ]
+                ]);
+
+                $notification->assignToUsers($parent);
+            }
         }
 
         return response()->json(['status' => true, 'message' => 'Diskusi berhasil ditambahkan!'], 200);
