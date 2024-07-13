@@ -106,9 +106,9 @@ class LearningPathController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, $slug)
+    public function show(Request $request, $id)
     {
-        $path = LearningPath::with('courses')->where('slug', '=', $slug)->firstOrFail();
+        $path = LearningPath::with('courses')->findOrFail($id);
 
         if($request->input('with_courses') == 'yes'){
             $path['lone_course'] = Course::whereNull('learning_path_id')->get();
