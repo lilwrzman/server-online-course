@@ -14,7 +14,7 @@ class NotificationController extends Controller
         $user = Auth::user();
 
         $notifications = UserNotification::where('user_id', $user->id)
-            ->with(["notification"])->get();
+            ->with(["notification"])->orderBy('created_at', 'desc')->get();
 
         return response()->json(['status' => true, 'data' => $notifications], 200);
     }
