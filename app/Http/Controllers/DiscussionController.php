@@ -59,18 +59,18 @@ class DiscussionController extends Controller
         }
 
         if($request->input('parent_id') && $request->input('parent_id') != $user->id){
+            $parent = User::findOrFail($request->input('parent_id'));
             $course = Course::findOrFail($request->input('course_id'));
             $notification = Notification::create([
                 'title' => 'Forum Diskusi',
                 'message' => 'Pengguna akun dengan username ' . $user->username . ' membalas diskusi anda pada materi ' . $course->title . '!',
                 'info' => [
-                    "target" => ["student", "teacher"],
+                    "target" => [strtolower($parent->role)],
                     "menu" => "discussion",
                     "course_id" => $course->id
                 ]
             ]);
 
-            $parent = User::findOrFail($request->input('parent_id'));
             $notification->assignToUsers($parent);
         }
 

@@ -175,7 +175,7 @@ class EventController extends Controller
 
         $event = Event::findOrFail($request->input('id'));
 
-        if(Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'default.png')){
+        if(Storage::exists('public/' . $event->thumbnail) && !str_contains($event->thumbnail, 'thumbnail.png')){
             Storage::delete('public/' . $event->thumbnail);
         }
 
