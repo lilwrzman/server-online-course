@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Exports\TransactionExport;
 use App\Models\Course;
 use App\Models\CourseAccess;
+use App\Models\Notification;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -122,6 +124,30 @@ class TransactionController extends Controller
         if(!$access){
             return response()->json(['status' => false, 'message' => 'Failed to create access'], 422);
         }
+
+        $notification_student = Notification::create([
+            'title' => 'Pembelian Materi',
+            'message' => 'Anda telah berhasil melakukan pembelian Materi: ' . $course->title . '! Mulai belajar sekarang',
+            'info' => [
+                "target" => ["student"],
+                "menu" => "transactions",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $notification_admin = Notification::create([
+            'title' => 'Pembelian Materi',
+            'message' => 'Akun dengan username: ' . $user->username . ' telah berhasil melakukan pembelian Materi: ' . $course->title . '! Cek transaksi sekarang!',
+            'info' => [
+                "target" => ["superadmin"],
+                "menu" => "transaction",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $admins = User::where('role', 'Superadmin')->get();
+        $notification_student->assignToUsers($user);
+        $notification_admin->assignToUsers($admins);
 
         return response()->json(['status' => true, 'message' => 'Berhasil membeli materi ' . $course->title . '!'], 200);
     }

@@ -61,9 +61,10 @@ class EventController extends Controller
         }
 
         $notification = Notification::create([
-            'title' => 'Acara Baru',
-            'message' => 'Ada acara baru yang nih, penasaran? Yuk cek sekarang!',
+            'title' => 'Acara',
+            'message' => 'Ada acara yang baru nih, penasaran? Yuk cek sekarang!',
             'info' => [
+                "target" => ["all"],
                 "menu" => "events",
                 "event_id" => $event->id
             ]
@@ -109,9 +110,10 @@ class EventController extends Controller
         $event->update($request->all());
 
         $notification = Notification::create([
-            'title' => 'Update Acara',
+            'title' => 'Acara',
             'message' => 'Anda telah telah melakukan update data acara. Yuk cek sekarang!',
             'info' => [
+                "target" => ["superadmin"],
                 "menu" => "events",
                 "event_id" => $event->id
             ]

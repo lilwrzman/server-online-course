@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Discussion;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -37,7 +39,7 @@ class DiscussionController extends Controller
 
         $validator = Validator::make($request->all(), [
             'course_id' => 'required|int',
-            'parent_it' => 'sometimes|int',
+            'parent_id' => 'sometimes|int',
             'content' => 'required|string'
         ]);
 
@@ -54,6 +56,22 @@ class DiscussionController extends Controller
 
         if(!$discuss){
             return response()->json(['error' => 'Gagal menambah data diskusi!'], 500);
+        }
+
+        if($request->input('parent_id') && $request->input('parent_id') != $user->id){
+            $course = Course::findOrFail($request->input('course_id'));
+            $notification = Notification::create([
+                'title' => 'Forum Diskusi',
+                'message' => 'Pengguna akun dengan username ' . $user->username . ' membalas diskusi anda pada materi ' . $course->title . '!',
+                'info' => [
+                    "target" => ["student", "teacher"],
+                    "menu" => "discussion",
+                    "course_id" => $course->id
+                ]
+            ]);
+
+            $parent = User::findOrFail($request->input('parent_id'));
+            $notification->assignToUsers($parent);
         }
 
         return response()->json(['status' => true, 'message' => 'Diskusi berhasil ditambahkan!'], 200);

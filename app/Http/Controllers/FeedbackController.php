@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseFeedback;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -73,6 +75,32 @@ class FeedbackController extends Controller
         if(!$feedback){
             return response()->json(['error' => 'Gagal menambahkan umpan balik!'], 500);
         }
+
+        $course = Course::findOrFail($request->input('course_id'));
+
+        $notification_student = Notification::create([
+            'title' => 'Umpan Balik',
+            'message' => 'Terimakasih atas pemberian umpan balik untuk materi ' . $course->title . '! Cek seluruh umpan balik disini!',
+            'info' => [
+                "target" => ["student"],
+                "menu" => "testimonials",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $notification_teacher = Notification::create([
+            'title' => 'Umpan Balik',
+            'message' => 'Akun dengan username ' . $user->username . ' telah memberikan umpan balik untuk materi ' . $course->title . ' anda! Cek seluruh umpan balik sekarang!',
+            'info' => [
+                "target" => ["teacher"],
+                "menu" => "feedback",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $teacher = User::findOrFail($course->teacher_id);
+        $notification_student->assignToUsers($user);
+        $notification_teacher->assignToUsers($teacher);
 
         return response()->json(['status' => true, 'message' => 'Terimakasih atas umpan baliknya!'], 200);
     }

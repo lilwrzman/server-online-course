@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BundleItem;
 use App\Models\CourseBundle;
+use App\Models\Notification;
 use App\Models\RedeemCode;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -85,6 +86,19 @@ class CourseBundleController extends Controller
 
         $bundle->redeem_code_id = $redeem_code->id;
         $bundle->save();
+
+        $notification = Notification::create([
+            'title' => 'Paket Kursus',
+            'message' => 'Paket kursus baru telah ditambahkan, cek paket kursus sekarang!',
+            'info' => [
+                "target" => ["superadmin", "corporate admin"],
+                "menu" => "bundle",
+                "bundle_id" => $bundle->id
+            ]
+        ]);
+
+        $users = User::whereIn('id', [$user->id, $request->input('corporate')])->get();
+        $notification->assignToUsers($users);
 
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan bundel!']);
     }

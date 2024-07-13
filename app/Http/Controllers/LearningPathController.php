@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\LearningPath;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -83,6 +85,20 @@ class LearningPathController extends Controller
         }
 
         $path->save();
+
+        $notification = Notification::create([
+            'title' => 'Alur Belajar',
+            'message' => 'Ada alur belajar baru nih, penasaran? Yuk cek sekarang!',
+            'info' => [
+                "target" => ["all"],
+                "menu" => "learning-paths",
+                "learning_path_id" => $path->id
+            ]
+        ]);
+
+        $users = User::all();
+
+        $notification->assignToUsers($users);
 
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Alur Belajar.', 'path' => $path], 201);
     }
@@ -192,7 +208,7 @@ class LearningPathController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Materi yang dipilih gagal ditambahkan ke Alur Belajar!',
+                'message' => 'Materi yang dipilih berhasil ditambahkan ke Alur Belajar!',
                 'data' => $path], 201);
         }
     }

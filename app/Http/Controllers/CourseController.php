@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -91,6 +92,31 @@ class CourseController extends Controller
         if(!$course){
             return response()->json(['status' => false, 'message' => 'Gagal menambahkan Course.']);
         }
+
+        $notification_admin = Notification::create([
+            'title' => 'Materi',
+            'message' => 'Anda telah menambahkan materi baru! Atur dan terbitkan apabila telah lengkap!',
+            'info' => [
+                "target" => ["superadmin"],
+                "menu" => "course",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $notification_teacher = Notification::create([
+            'title' => 'Materi',
+            'message' => 'Anda telah ditugaskan untuk mengurus Materi ' . $course->title . '! Cek dan atur sekarang!',
+            'info' => [
+                "target" => ["teacher"],
+                "menu" => "course",
+                "course_id" => $course->id
+            ]
+        ]);
+
+        $teacher = User::findOrFail($request->input('teacher_id'));
+
+        $notification_admin->assignToUsers($user);
+        $notification_teacher->assignToUsers($teacher);
 
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Course.']);
     }

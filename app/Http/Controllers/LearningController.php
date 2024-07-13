@@ -8,6 +8,7 @@ use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\CourseItem;
+use App\Models\Notification;
 use App\Models\StudentProgress;
 use App\Models\User;
 use App\Services\CertificateService;
@@ -220,6 +221,30 @@ class LearningController extends Controller
                 "completion_date" => $completionDate,
                 "certificate" => $certificatePath
             ]);
+
+            $notification_student = Notification::create([
+                'title' => 'Pembelajaran Selesai',
+                'message' => 'Selamat, anda telah berhasil menyelesaikan pembelajaran materi ' . $course->title . '! Kami sangat mengharapkan umpan balik dari anda! Beri umpan balik dan dapatkan sertifikat sekarang!',
+                'info' => [
+                    "target" => ["student"],
+                    "menu" => "my-courses",
+                    "course_id" => $course->id
+                ]
+            ]);
+
+            $notification_teacher = Notification::create([
+                'title' => 'Pembelajaran Selesai',
+                'message' => 'Akun dengan username ' . $user->username . ' telah menyelesaikan pembelajaran materi ' . $course->title . ' anda! Cek halaman progres sekarang!',
+                'info' => [
+                    "target" => ["teacher"],
+                    "menu" => "progress",
+                    "course_id" => $course->id
+                ]
+            ]);
+
+            $teacher = User::findOrFail($course->teacher_id);
+            $notification_student->assignToUsers($user);
+            $notification_teacher->assignToUsers($teacher);
         }
 
         $result = "";

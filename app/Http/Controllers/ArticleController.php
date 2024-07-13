@@ -58,9 +58,10 @@ class ArticleController extends Controller
         }
 
         $notification = Notification::create([
-            'title' => 'Artikel Baru',
+            'title' => 'Artikel',
             'message' => 'Ada artikel baru yang terbit nih, penasaran? Yuk cek sekarang!',
             'info' => [
+                "target" => ["all"],
                 "menu" => "articles",
                 "article_id" => $article->id
             ]
@@ -102,9 +103,10 @@ class ArticleController extends Controller
         $article->update($request->all());
 
         $notification = Notification::create([
-            'title' => 'Update Artikel',
+            'title' => 'Artikel',
             'message' => 'Anda telah telah melakukan update data artikel. Yuk cek sekarang!',
             'info' => [
+                "target" => ["superadmin"],
                 "menu" => "articles",
                 "article_id" => $article->id
             ]
