@@ -13,6 +13,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LearningPathController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RedeemCodeController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
@@ -242,9 +243,19 @@ Route::group([
 // End of Endpoint: Articles
 
 
-// Certificate
+// Endpoint: Certificate
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
     Route::get('/certificate/{course_id}', [CertificateController::class, 'get']);
 });
+// End of Endpoint: Certificate
+
+
+// Endpoint: Notification
+Route::group([
+    "middleware" => ['auth:api'],
+], function(){
+    Route::get("/notification/get", [NotificationController::class, 'index']);
+});
+// End of Endpoint: Notification
