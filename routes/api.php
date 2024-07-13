@@ -257,5 +257,6 @@ Route::group([
     "middleware" => ['auth:api'],
 ], function(){
     Route::get("/notification/get", [NotificationController::class, 'index']);
+    Route::post("/notification/update", [NotificationController::class, 'updateSeen']);
 });
 // End of Endpoint: Notification
