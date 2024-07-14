@@ -44,6 +44,7 @@ class DashboardController extends Controller
             $data['count_student'] = $accesses->count();
             $data['count_student_done'] = $accesses->where('status', 'Completed')->count();
             $data['count_course'] = Course::where('teacher_id', $user->id)->count();
+            $data['count_feedback'] = CourseFeedback::whereIn('course_id', $accesses->pluck('course_id'))->count();
             $data['latest_feedback'] = CourseFeedback::whereIn('course_id', $accesses->pluck('course_id'))
                                         ->orderBy('created_at', 'desc')
                                         ->take(5)
