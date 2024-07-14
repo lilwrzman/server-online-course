@@ -73,7 +73,7 @@ class DashboardController extends Controller
             $latestProgresses = collect();
 
             foreach ($students as $student) {
-                $studentProgresses = StudentProgress::with(['item.course:id,title'])
+                $studentProgresses = StudentProgress::with(['item:id,course_id,title,type.course:id,title'])
                     ->where('user_id', $student->id)
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -101,7 +101,7 @@ class DashboardController extends Controller
                 $courseData[] = [
                     'course' => $course,
                     'latest_progress' => $progress,
-                    'user' => $progress->student,
+                    'user' => $progress->student->get(['id', 'username', 'info']),
                     'progress_count' => $completedItemsCount,
                     'total_items_count' => $totalItemsCount,
                     'progress_percentage' => ($totalItemsCount > 0) ? ($completedItemsCount / $totalItemsCount) * 100 : 0,
