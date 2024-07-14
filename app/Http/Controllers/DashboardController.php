@@ -39,8 +39,8 @@ class DashboardController extends Controller
 
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
-                $course->feedback = $course->feedbacks->firstWhere('user_id', $user->id);
-                $course->makeHidden(['items']);
+                $course->feedback = $course->feedbacks->where('user_id', $user->id)->exists();
+                $course->makeHidden(['items', 'feedbacks']);
             }
 
             return response()->json(['status' => true, 'data' => $courses]);
