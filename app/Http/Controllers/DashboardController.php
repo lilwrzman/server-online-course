@@ -73,7 +73,7 @@ class DashboardController extends Controller
             $latestProgresses = collect();
 
             foreach ($students as $student) {
-                $studentProgresses = StudentProgress::with(['item:id,course_id,title,type.course:id,title'])
+                $studentProgresses = StudentProgress::with(['item:id,course_id,title,type', 'item.course:id,title'])
                     ->where('user_id', $student->id)
                     ->orderBy('created_at', 'desc')
                     ->get()
