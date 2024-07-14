@@ -39,7 +39,14 @@ class DashboardController extends Controller
 
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
+
+                $progressCount = StudentProgress::whereHas('item', function ($query) use ($course) {
+                    $query->where('course_id', $course->id);
+                })->where('user_id', $user->id)->count();
+                $course->progress_count = $progressCount;
+
                 $course->feedback = $course->feedbacks->firstWhere('user_id', $user->id);
+
                 $course->makeHidden(['items', 'feedbacks']);
                 $course->latest_progress->item->makeHidden(['description', 'slug', 'info', 'order', 'created_at', 'updated_at', 'course']);
             }
