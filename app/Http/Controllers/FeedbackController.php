@@ -12,6 +12,16 @@ use Illuminate\Support\Facades\Validator;
 
 class FeedbackController extends Controller
 {
+    public function index()
+    {
+        $feedbacks = CourseFeedback::with([
+            'course:id,title',
+            'user:id,avatar,info'
+        ])->get();
+
+        return response()->json(['status' => true, 'data' => $feedbacks]);
+    }
+
     public function courseFeedback($id)
     {
         $datas = Course::select('id', 'title')->with([

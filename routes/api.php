@@ -169,6 +169,7 @@ Route::group([
 
 // Endpoint: Feedback
 Route::get("/course/{id}/feedback", [FeedbackController::class, 'courseFeedback']);
+Route::get("/feedback/get", [FeedbackController::class, 'index']);
 
 Route::group([
     "middleware" => ['auth:api']
