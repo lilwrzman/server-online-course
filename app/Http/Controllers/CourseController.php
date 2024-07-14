@@ -53,7 +53,7 @@ class CourseController extends Controller
                     }
                     $averageRating = $totalRating / $countFeedbacks;
                 } else {
-                    $averageRating = 0; 
+                    $averageRating = 0;
                 }
 
                 $course['rating'] = $averageRating;
@@ -161,6 +161,20 @@ class CourseController extends Controller
             ])
             ->findOrFail($id);
 
+        $totalRating = 0;
+        $countFeedbacks = $course->feedbacks->count();
+
+        if ($countFeedbacks > 0) {
+            foreach ($course->feedbacks as $feedback) {
+                $totalRating += $feedback->rating;
+            }
+            $averageRating = $totalRating / $countFeedbacks;
+        } else {
+            $averageRating = 0;
+        }
+
+        $course['rating'] = $averageRating;
+        
         if($request->input('with_teachers') == 'yes'){
             $course['teachers'] = User::where('id', '!=', $course->teacher_id)
                 ->where('role', '=', 'Teacher')->get();
