@@ -100,7 +100,7 @@ Route::group([
 
 // Endpoint: Course Items
 Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // Get all item in Course by Course's ID
-Route::get('/video/playlist/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
+Route::get('/video/playlist/{course_id}/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
 
 Route::group([
     "middleware" => ['auth:api']

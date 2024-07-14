@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentQuestion;
 use App\Models\Course;
+use App\Models\CourseAccess;
 use App\Models\CourseItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -294,45 +295,51 @@ class CourseItemController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil mengubah urutan submateri!']);
     }
 
-    public function playlist($uniqid, $playlist)
+    public function playlist($course_id, $uniqid, $playlist)
     {
         try {
             return FFMpeg::dynamicHLSPlaylist()
                 ->fromDisk('public')
                 ->open("videos/{$uniqid}/{$playlist}")
-                ->setKeyUrlResolver(function ($key) use ($uniqid) {
-                    $keyUrl = route('video.key', ['key' => $key, 'uniqid' => $uniqid]);
-                    Log::info("Key URL resolved: {$keyUrl}");
+                ->setKeyUrlResolver(function ($key) use ($uniqid, $course_id) {
+                    $keyUrl = route('video.key', [
+                        'course_id' => $course_id,
+                        'key' => $key,
+                        'uniqid' => $uniqid]);
                     return $keyUrl;
                 })
-                ->setPlaylistUrlResolver(function ($playlist) use ($uniqid) {
+                ->setPlaylistUrlResolver(function ($playlist) use ($uniqid, $course_id) {
                     $playlistUrl = route('video.playlist', [
+                        'course_id' => $course_id,
                         'uniqid' => $uniqid,
                         'playlist' => $playlist
                     ]);
-                    Log::info("Playlist URL resolved: {$playlistUrl}");
                     return $playlistUrl;
                 })
                 ->setMediaUrlResolver(function ($media) use ($uniqid) {
                     $mediaUrl = Storage::disk('public')->url("videos/{$uniqid}/{$media}");
-                    Log::info("Media URL resolved: {$mediaUrl}");
                     return $mediaUrl;
                 });
         } catch (\Exception $e) {
-            Log::error("Error opening HLS playlist: {$e->getMessage()}");
             abort(500, "Error opening HLS playlist.");
         }
     }
 
-    public function key($uniqid, $key)
+    public function key($course_id, $uniqid, $key)
     {
+        $user = Auth::user();
+
+        $allowed = CourseAccess::where('user_id', $user->id)->where('course_id', $course_id)->exists();
+
+        if(!$allowed){
+            abort(401, "Unauthorized.");
+        }
+
         $keyPath = $uniqid . '/' . $key;
-        Log::info("Downloading key: {$keyPath}");
 
         if (Storage::disk('secrets')->exists($keyPath)) {
             return Storage::disk('secrets')->download($keyPath);
         } else {
-            Log::error("Key not found: {$keyPath}");
             abort(404, "Key not found.");
         }
     }
