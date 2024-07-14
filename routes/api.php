@@ -105,7 +105,7 @@ Route::get('/video/playlist/{course_id}/{uniqid}/{playlist}', [CourseItemControl
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/video/key/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
+    Route::get('/video/key/{course_id}/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
     Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // Get item's detail in Courses by Course's ID
     Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // Reorder the items inside the Course
     Route::post('/course/{id}/assessment/add', [CourseItemController::class, 'storeAssessment']);  // Add new Assessment (Quiz or Exam) in Course by it's ID
