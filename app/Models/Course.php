@@ -12,8 +12,7 @@ class Course extends Model
 
     protected $fillable = [
         'learning_path_id', 'teacher_id', 'title', 'description',
-        'slug', 'thumbnail', 'price', 'order',
-        'rating', 'items', 'isPublished',
+        'slug', 'thumbnail', 'price', 'order', 'items', 'isPublished',
         'facilities'
     ];
 

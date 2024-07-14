@@ -22,13 +22,41 @@ class CourseController extends Controller
 
         foreach($data['courses'] as $course){
             $course['items'] = $course->items()->count();
+            $totalRating = 0;
+            $countFeedbacks = $course->feedbacks->count();
+
+            if ($countFeedbacks > 0) {
+                foreach ($course->feedbacks as $feedback) {
+                    $totalRating += $feedback->rating;
+                }
+                $averageRating = $totalRating / $countFeedbacks;
+            } else {
+                $averageRating = 0;
+            }
+
+            $course['rating'] = $averageRating;
         }
 
-        if($user){
-            $role = $user->role;
-            if($role == 'Teacher'){
-                $data['my_courses'] = Course::with('learningPath:id,title,color')->where('teacher_id', $user->id)->get();
-                $data['my_courses']->makeHidden(['learning_path_id']);
+        if ($user && $user->role == 'Teacher') {
+            $data['my_courses'] = Course::with('learningPath:id,title,color')->where('teacher_id', $user->id)->get();
+            $data['my_courses']->makeHidden(['learning_path_id']);
+
+            foreach ($data['my_courses'] as $course) {
+                $course['items'] = $course->items()->count();
+
+                $totalRating = 0;
+                $countFeedbacks = $course->feedbacks->count();
+
+                if ($countFeedbacks > 0) {
+                    foreach ($course->feedbacks as $feedback) {
+                        $totalRating += $feedback->rating;
+                    }
+                    $averageRating = $totalRating / $countFeedbacks;
+                } else {
+                    $averageRating = 0; 
+                }
+
+                $course['rating'] = $averageRating;
             }
         }
 
