@@ -103,7 +103,7 @@ class DashboardController extends Controller
                     'latest_progress' => $progress,
                     'progress_count' => $completedItemsCount,
                     'total_items_count' => $totalItemsCount,
-                    'student' => $progress->student()->get()
+                    'student' => $progress->student()->get(['id', 'fullname', 'info', 'avatar'])
                 ];
             }
 
