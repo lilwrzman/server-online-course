@@ -63,7 +63,7 @@ class TransactionController extends Controller
             if (is_null($existingTransaction->snap_token)) {
                 $params = [
                     "transaction_details" => [
-                        "order_id" => $existingTransaction->id,
+                        "order_id" => "#" . $existingTransaction->id,
                         "gross_amount" => $course->price
                     ],
                     "customer_details" => [
@@ -89,7 +89,7 @@ class TransactionController extends Controller
 
         $params = array(
             "transaction_details" => array(
-                "order_id" => $transaction->id,
+                "order_id" => "#" . $transaction->id,
                 "gross_amount" => $course->price
             ),
             "customer_details" => array(
