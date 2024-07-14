@@ -329,9 +329,13 @@ class CourseItemController extends Controller
     {
         $user = Auth::user();
 
-        $allowed = CourseAccess::where('user_id', $user->id)->where('course_id', $course_id)->exists();
+        $allowed = CourseAccess::where('user_id', $user->id)
+                        ->where('course_id', $course_id)
+                        ->exists();
 
-        if(!$allowed){
+        if ($user->role == "Student" && !$allowed) {
+            abort(401, "Unauthorized.");
+        } elseif ($user->role == "Corporate Admin") {
             abort(401, "Unauthorized.");
         }
 
