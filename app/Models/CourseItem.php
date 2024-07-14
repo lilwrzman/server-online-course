@@ -27,6 +27,11 @@ class CourseItem extends Model
         return $this->belongsTo(Course::class);
     }
 
+    public function progresses()
+    {
+        return $this->hasMany(StudentProgress::class);
+    }
+
     public function questions()
     {
         return $this->hasMany(AssessmentQuestion::class, 'item_id');
