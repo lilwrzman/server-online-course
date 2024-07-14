@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseAccess;
+use App\Models\CourseBundle;
 use App\Models\CourseFeedback;
+use App\Models\Referral;
 use App\Models\StudentProgress;
 use App\Models\Transaction;
 use App\Models\User;
@@ -53,6 +55,30 @@ class DashboardController extends Controller
                                         ->orderBy('created_at', 'desc')
                                         ->take(5)
                                         ->get();
+
+            return response()->json(['status' => true, 'data' => $data]);
+        }else if($role == 'Corporate Admin'){
+            $data['referall_code'] = Referral::firstWhere('corporate_id', $user->id);
+            $data['count_student'] = User::where('role', 'Student')->where('corporate_id', $user->id)->count();
+            $data['count_bundle'] = CourseBundle::where('corporate_id', $user->id)->count();
+            $data['count_student_done'] = CourseAccess::with([
+                                            'student' => function($query) use ($user){
+                                                $query->where('corporate_id', $user->id);
+                                            }
+                                        ])->where('user_id', 'student.id')
+                                        ->where('status', 'Completed')->count();
+
+            $data['latest_progresses'] = StudentProgress::with([
+                                    'student' => function($query) use ($user){
+                                        $query->where('corporate_id', $user->id);
+                                    },
+                                    'item.course:id,title'
+                                ])
+                                ->where('user_id', 'student.id')
+                                ->orderBy('created_at', 'desc')
+                                ->get()
+                                ->unique('item.course_id')
+                                ->take(5);
 
             return response()->json(['status' => true, 'data' => $data]);
         }else if($role == 'Student'){
