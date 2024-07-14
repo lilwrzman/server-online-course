@@ -73,7 +73,7 @@ class DashboardController extends Controller
                                                 $query->where('corporate_id', $user->id);
                                             },
                                             'item.course:id,title'
-                                        ])->whereHas('user', function($query) use ($user) {
+                                        ])->whereHas('student', function($query) use ($user) {
                                             $query->where('corporate_id', $user->id);
                                         })->orderBy('created_at', 'desc')
                                         ->get()
