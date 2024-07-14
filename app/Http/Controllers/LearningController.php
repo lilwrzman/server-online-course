@@ -371,7 +371,6 @@ class LearningController extends Controller
         $student = User::findOrFail($id);
 
         $courses = CourseAccess::where('user_id', $id)
-            ->where('Type', 'Corporate')
             ->with([
                 'course:id,title,thumbnail,slug',
                 'course.items:id,course_id,slug'
