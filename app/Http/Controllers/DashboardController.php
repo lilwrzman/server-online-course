@@ -38,7 +38,9 @@ class DashboardController extends Controller
                         }])->get(['id', 'title']);
 
             foreach($courses as $course){
-                $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
+                $course->latest_progress = $latestProgresses
+                                            ->select('id', 'course_id', 'title', 'type')
+                                            ->firstWhere('item.course_id', $course->id);
                 $course->feedback = $course->feedbacks->firstWhere('user_id', $user->id);
                 $course->makeHidden(['items', 'feedbacks']);
             }
