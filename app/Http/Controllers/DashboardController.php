@@ -37,8 +37,6 @@ class DashboardController extends Controller
                             $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
                         }])->get();
 
-            var_dump($courses->toArray());
-
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
             }

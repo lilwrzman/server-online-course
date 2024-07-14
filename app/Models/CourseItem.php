@@ -29,7 +29,7 @@ class CourseItem extends Model
 
     public function progresses()
     {
-        return $this->hasMany(StudentProgress::class);
+        return $this->hasMany(StudentProgress::class, 'item_id');
     }
 
     public function questions()
