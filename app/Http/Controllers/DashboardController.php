@@ -31,19 +31,15 @@ class DashboardController extends Controller
                                 ->take(3);
 
             $courseIds = $latestProgresses->pluck('item.course_id');
-            var_dump($courseIds);
+            var_dump($courseIds->toArray());
             $courses = Course::whereIn('id', $courseIds)
                         ->with(['items', 'items.progresses' => function($query) use ($user) {
                             $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
                         }])->get();
 
-            var_dump($courses);
-
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
             }
-
-            var_dump($courses);
 
             return response()->json(['status' => true, 'data' => $courses]);
         }
