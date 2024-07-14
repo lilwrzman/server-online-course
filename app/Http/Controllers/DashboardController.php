@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\CourseAccess;
 use App\Models\CourseBundle;
 use App\Models\CourseFeedback;
+use App\Models\CourseItem;
 use App\Models\Referral;
 use App\Models\StudentProgress;
 use App\Models\Transaction;
@@ -68,17 +69,46 @@ class DashboardController extends Controller
                                         ])->where('user_id', 'student.id')
                                         ->where('status', 'Completed')->count();
 
-            $data['latest_progresses'] = StudentProgress::with([
-                                            'student' => function($query) use ($user){
-                                                $query->where('corporate_id', $user->id);
-                                            },
-                                            'item.course:id,title'
-                                        ])->whereHas('student', function($query) use ($user) {
-                                            $query->where('corporate_id', $user->id);
-                                        })->orderBy('created_at', 'desc')
-                                        ->get()
-                                        ->unique('item.course_id')
-                                        ->take(5);
+            $students = User::where('role', 'Student')->where('corporate_id', $user->id)->get();
+            $latestProgresses = collect();
+
+            foreach ($students as $student) {
+                $studentProgresses = StudentProgress::with(['item.course:id,title'])
+                    ->where('user_id', $student->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->unique('item.course_id');
+
+                foreach ($studentProgresses as $progress) {
+                    $latestProgresses->push($progress);
+                }
+            }
+
+            $latestProgresses = $latestProgresses->take(5);
+
+            $courseData = [];
+            foreach ($latestProgresses as $progress) {
+                $course = $progress->item->course;
+                $courseId = $course->id;
+                $userId = $progress->user_id;
+
+                $completedItemsCount = StudentProgress::whereHas('item', function ($query) use ($courseId) {
+                    $query->where('course_id', $courseId);
+                })->where('user_id', $userId)->count();
+
+                $totalItemsCount = CourseItem::where('course_id', $courseId)->count();
+
+                $courseData[] = [
+                    'course' => $course,
+                    'latest_progress' => $progress,
+                    'user' => $progress->user,
+                    'progress_count' => $completedItemsCount,
+                    'total_items_count' => $totalItemsCount,
+                    'progress_percentage' => ($totalItemsCount > 0) ? ($completedItemsCount / $totalItemsCount) * 100 : 0,
+                ];
+            }
+
+            $data['latest_progresses'] = $courseData;
 
             return response()->json(['status' => true, 'data' => $data]);
         }else if($role == 'Student'){
