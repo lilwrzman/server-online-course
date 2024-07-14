@@ -44,7 +44,7 @@ class DashboardController extends Controller
                     $query->where('course_id', $course->id);
                 })->where('user_id', $user->id)->count();
                 $course->progress_count = $progressCount;
-                $course->items = $course->items->count();
+                $course->items_count = $course->items->count();
 
                 $course->feedback = $course->feedbacks->firstWhere('user_id', $user->id);
 
