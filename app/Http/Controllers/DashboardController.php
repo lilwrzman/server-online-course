@@ -29,6 +29,7 @@ class DashboardController extends Controller
                                 ->get()
                                 ->unique('item.course_id')
                                 ->take(3);
+            dd($latestProgresses);
 
             $courseIds = $latestProgresses->pluck('item.course_id');
             $courses = Course::whereIn('id', $courseIds)
