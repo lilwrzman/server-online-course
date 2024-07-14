@@ -101,7 +101,6 @@ class DashboardController extends Controller
                 $courseData[] = [
                     'course' => $course,
                     'latest_progress' => $progress,
-                    'user' => $progress->student->get(['id', 'username', 'info']),
                     'progress_count' => $completedItemsCount,
                     'total_items_count' => $totalItemsCount,
                     'progress_percentage' => ($totalItemsCount > 0) ? ($completedItemsCount / $totalItemsCount) * 100 : 0,
