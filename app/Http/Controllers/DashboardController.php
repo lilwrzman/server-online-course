@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\CourseAccess;
+use App\Models\CourseFeedback;
 use App\Models\StudentProgress;
 use App\Models\Transaction;
 use App\Models\User;
@@ -29,6 +31,24 @@ class DashboardController extends Controller
             ])->orderBy('created_at', 'desc')->take(5)->get();
 
             $data['transaction_list']->makeHidden('snap_token');
+
+            return response()->json(['status' => true, 'data' => $data]);
+        }else if($role == 'Student'){
+            $accesses = CourseAccess::with([
+                'course' => function($query) use ($user) {
+                    $query->where('teacher_id', $user->id);
+                },
+                'student:id,username,info,avatar'
+            ])->get();
+            $data['count_student'] = $accesses->count();
+            $data['count_student_done'] = $accesses->where('status', 'Completed')->count();
+            $data['count_course'] = Course::where('teacher_id', $user->id)->count();
+            $data['latest_feedback'] = CourseFeedback::whereIn('course_id', $accesses->pluck('course_id'))
+                                        ->orderBy('created_at', 'desc')
+                                        ->take(5)
+                                        ->get();
+
+            return response()->json(['status' => true, 'data' => $data]);
         }else if($role == 'Student'){
             $latestProgresses = StudentProgress::with(['item.course:id,title'])
                                 ->where('user_id', $user->id)
@@ -61,7 +81,5 @@ class DashboardController extends Controller
 
             return response()->json(['status' => true, 'data' => $courses]);
         }
-
-        return response()->json(['status' => true, 'data' => $data]);
     }
 }
