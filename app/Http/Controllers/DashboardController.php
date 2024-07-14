@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\StudentProgress;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,8 +21,12 @@ class DashboardController extends Controller
             $data['count_student'] = User::where('role', 'Student')->count();
             $data['count_course'] = Course::count();
             $data['count_corporate'] = User::where('role', 'Corporate Admin')->count();
-            $data['count_transaction'] = 0;
-            $data['transaction_list'] = [];
+            $data['count_transaction'] = Transaction::where('status', 'success')->count();
+            $data['transaction_list'] = Transaction::with([
+                'course:id,title,thumbnail',
+                'course.items:id,course_id,type,title',
+                'student:id,username,info'
+            ]);
         }else if($role == 'Student'){
             $latestProgresses = StudentProgress::with(['item.course:id,title'])
                                 ->where('user_id', $user->id)
