@@ -26,7 +26,7 @@ class DashboardController extends Controller
                 'course:id,title,thumbnail',
                 'course.items:id,course_id,type,title',
                 'student:id,username,info'
-            ]);
+            ])->orderBy('created_at', 'desc')->take(5)->get();
         }else if($role == 'Student'){
             $latestProgresses = StudentProgress::with(['item.course:id,title'])
                                 ->where('user_id', $user->id)
