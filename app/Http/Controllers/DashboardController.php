@@ -103,7 +103,9 @@ class DashboardController extends Controller
                     'latest_progress' => $progress,
                     'progress_count' => $completedItemsCount,
                     'total_items_count' => $totalItemsCount,
-                    'progress_percentage' => ($totalItemsCount > 0) ? ($completedItemsCount / $totalItemsCount) * 100 : 0,
+                    'student' => User::where('role', "Student")
+                                    ->firstWhere("id", $userId)
+                                    ->get(['id', 'username', 'avatar', 'info'])
                 ];
             }
 
