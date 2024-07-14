@@ -39,6 +39,7 @@ class DashboardController extends Controller
 
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
+                $course->makeHidden(['items']);
             }
 
             return response()->json(['status' => true, 'data' => $courses]);
