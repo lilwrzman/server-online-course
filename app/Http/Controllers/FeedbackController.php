@@ -17,7 +17,7 @@ class FeedbackController extends Controller
         $feedbacks = CourseFeedback::with([
             'course:id,title',
             'user:id,avatar,info'
-        ])->get();
+        ])->orderBy('created_at', 'desc')->get();
 
         return response()->json(['status' => true, 'data' => $feedbacks]);
     }
