@@ -33,13 +33,14 @@ class DashboardController extends Controller
             $data['transaction_list']->makeHidden('snap_token');
 
             return response()->json(['status' => true, 'data' => $data]);
-        }else if($role == 'Student'){
+        }else if($role == 'Teacher'){
             $accesses = CourseAccess::with([
                 'course' => function($query) use ($user) {
                     $query->where('teacher_id', $user->id);
                 },
                 'student:id,username,info,avatar'
             ])->get();
+
             $data['count_student'] = $accesses->count();
             $data['count_student_done'] = $accesses->where('status', 'Completed')->count();
             $data['count_course'] = Course::where('teacher_id', $user->id)->count();
