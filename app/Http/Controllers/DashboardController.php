@@ -69,16 +69,16 @@ class DashboardController extends Controller
                                         ->where('status', 'Completed')->count();
 
             $data['latest_progresses'] = StudentProgress::with([
-                                    'student' => function($query) use ($user){
-                                        $query->where('corporate_id', $user->id);
-                                    },
-                                    'item.course:id,title'
-                                ])
-                                ->where('user_id', 'student.id')
-                                ->orderBy('created_at', 'desc')
-                                ->get()
-                                ->unique('item.course_id')
-                                ->take(5);
+                                            'student' => function($query) use ($user){
+                                                $query->where('corporate_id', $user->id);
+                                            },
+                                            'item.course:id,title'
+                                        ])->whereHas('user', function($query) use ($user) {
+                                            $query->where('corporate_id', $user->id);
+                                        })->orderBy('created_at', 'desc')
+                                        ->get()
+                                        ->unique('item.course_id')
+                                        ->take(5);
 
             return response()->json(['status' => true, 'data' => $data]);
         }else if($role == 'Student'){
