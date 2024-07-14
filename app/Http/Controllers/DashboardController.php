@@ -103,9 +103,7 @@ class DashboardController extends Controller
                     'latest_progress' => $progress,
                     'progress_count' => $completedItemsCount,
                     'total_items_count' => $totalItemsCount,
-                    'student' => User::where('role', "Student")
-                                    ->firstWhere("id", $userId)
-                                    ->get(['id', 'username', 'avatar', 'info'])
+                    'student' => $progress->student()
                 ];
             }
 
