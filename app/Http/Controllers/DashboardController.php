@@ -23,7 +23,7 @@ class DashboardController extends Controller
             $data['count_transaction'] = 0;
             $data['transaction_list'] = [];
         }else if($role == 'Student'){
-            $latestProgresses = StudentProgress::with(['item.course'])
+            $latestProgresses = StudentProgress::with(['item.course:id,title'])
                                 ->where('user_id', $user->id)
                                 ->orderBy('created_at', 'desc')
                                 ->get()
@@ -33,9 +33,9 @@ class DashboardController extends Controller
             $courseIds = $latestProgresses->pluck('item.course_id');
 
             $courses = Course::whereIn('id', $courseIds)
-                        ->with(['items', 'items.progresses' => function($query) use ($user) {
+                        ->with(['items.progresses' => function($query) use ($user) {
                             $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
-                        }])->get();
+                        }])->get(['id', 'title']);
 
             foreach($courses as $course){
                 $course->latest_progress = $latestProgresses->firstWhere('item.course_id', $course->id);
