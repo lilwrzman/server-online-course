@@ -185,7 +185,7 @@ class LearningPathController extends Controller
             $validator = Validator::make($request->all(), [
                 'selected_course' => 'required',
             ], [
-                'thumbnail_file.required' => 'Harap pilih materi yang ingin ditambahkan!',
+                'selected_course.required' => 'Harap pilih materi yang ingin ditambahkan!',
             ]);
 
             if($validator->fails()){

@@ -146,7 +146,7 @@ class CourseItemController extends Controller
                 "info" => [
                     "passing_score" => $data['passing_score']
                 ],
-                "order" => $data['type'] == 'Exam' ? 0 : $course->items + 1
+                "order" => $data['type'] == 'Exam' ? 0 : $course->items()->count() + 1
             ]);
 
             if (!$item) {
