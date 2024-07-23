@@ -230,7 +230,7 @@ class CourseItemController extends Controller
                 throw new \Exception('Gagal mengubah ' . $data['type'] . '!', 400);
             }
 
-            foreach ($questions as $question) {
+            foreach ($questions as $key => $question) {
                 $options = [];
                 $correct_answer = "";
                 foreach ($question['options'] as $opt) {
@@ -246,7 +246,7 @@ class CourseItemController extends Controller
                         'question' => $question['question'],
                         'options' => $options,
                         'correct_answer' => $correct_answer,
-                        'order' => $question['order']
+                        'order' => $key + 1
                     ]);
 
                     if (!$oldQuestion) {
@@ -258,7 +258,7 @@ class CourseItemController extends Controller
                         'question' => $question['question'],
                         'options' => $options,
                         'correct_answer' => $correct_answer,
-                        'order' => $question['order']
+                        'order' => $key + 1
                     ]);
 
                     if (!$newQuestion) {

@@ -106,13 +106,13 @@ Route::group([
     "middleware" => ['auth:api']
 ], function(){
     Route::get('/video/key/{course_id}/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
-    Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // Get item's detail in Courses by Course's ID
-    Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // Reorder the items inside the Course
+    Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // 🟩
+    Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // 🟩
     Route::post('/course/{id}/assessment/add', [CourseItemController::class, 'storeAssessment']);  // 🟩
     Route::post('/course/{id}/video/add', [CourseItemController::class, 'storeVideo']); // 🟩
     Route::post('/assessment/{id}/update', [CourseItemController::class, 'updateAssessment']); // Update Assessment by Item's ID
-    Route::post('/assessment/delete', [CourseItemController::class, 'deleteAssessment']); // Delete Quiz or Exam and it's question from database by it's ID
-    Route::post('/video/delete', [CourseItemController::class, 'deleteVideo']); // Delete Video and it's playlist from database and storage by it's ID
+    Route::post('/assessment/delete', [CourseItemController::class, 'deleteAssessment']); // 🟩
+    Route::post('/video/delete', [CourseItemController::class, 'deleteVideo']); // 🟩
 });
 // End of Endpoint: Course Items
 
