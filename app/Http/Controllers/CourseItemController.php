@@ -146,7 +146,7 @@ class CourseItemController extends Controller
                 "info" => [
                     "passing_score" => $data['passing_score']
                 ],
-                "order" => $data['type'] == 'Exam' ? 0 : $course->items()->count() + 1
+                "order" => $data['type'] == 'Exam' ? 0 : $course->items + 1
             ]);
 
             if (!$item) {
@@ -156,7 +156,7 @@ class CourseItemController extends Controller
             $course->items = $course->items + 1;
             $course->save();
 
-            foreach ($questions as $question) {
+            foreach ($questions as $key => $question) {
                 $options = [];
                 $correct_answer = "";
                 foreach ($question['options'] as $opt) {
@@ -171,7 +171,8 @@ class CourseItemController extends Controller
                     "item_id" => $item->id,
                     'question' => $question['question'],
                     'options' => $options,
-                    'correct_answer' => $correct_answer
+                    'correct_answer' => $correct_answer,
+                    "order" => $key + 1
                 ]);
             }
 
