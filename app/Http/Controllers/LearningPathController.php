@@ -102,34 +102,11 @@ class LearningPathController extends Controller
 
     public function show(Request $request, $id)
     {
-        $path = LearningPath::with('courses')->findOrFail($id);
-
-        $coursesWithRatings = [];
-
-        if ($path->relationLoaded('courses')) {
-            foreach ($path->courses as $course) {
-                $totalRating = 0;
-                $countFeedbacks = $course->feedbacks->count();
-
-                if ($countFeedbacks > 0) {
-                    foreach ($course->feedbacks as $feedback) {
-                        $totalRating += $feedback->rating;
-                    }
-
-                    $averageRating = $totalRating / $countFeedbacks;
-                } else {
-                    $averageRating = 0;
-                }
-
-                $coursesWithRatings[] = $course->toArray() + ['rating' => $averageRating];
-            }
-        }
+        $path = LearningPath::with('courses', 'courses.feedbacks')->findOrFail($id);
 
         if($request->input('with_courses') == 'yes'){
             $path['lone_course'] = Course::whereNull('learning_path_id')->get();
         }
-
-        $path->courses = $coursesWithRatings;
 
         return response()->json(['data' => $path], 200);
     }
