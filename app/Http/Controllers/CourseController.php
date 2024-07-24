@@ -370,6 +370,20 @@ class CourseController extends Controller
             return response()->json(['error' => 'Gagal memublikasikan materi.'], 500);
         }
 
+        $notification = Notification::create([
+            'title' => 'Materi',
+            'message' => 'Ada materi baru nih, penasaran? Yuk cek sekarang!',
+            'info' => [
+                "target" => ["all"],
+                "menu" => "courses",
+                "course_id" => $id
+            ]
+        ]);
+
+        $users = User::all();
+
+        $notification->assignToUsers($users);
+
         return response()->json(['status' => true, 'message' => "Publikasi berhasil!", 201]);
     }
 
