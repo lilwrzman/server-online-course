@@ -20,9 +20,6 @@ class LearningPathController extends Controller
         return response()->json(['data' => $paths], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -103,12 +100,25 @@ class LearningPathController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Alur Belajar.', 'path' => $path], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Request $request, $id)
     {
         $path = LearningPath::with('courses')->findOrFail($id);
+
+        foreach($path['courses'] as $course){
+            $totalRating = 0;
+            $countFeedbacks = $course->feedbacks->count();
+
+            if ($countFeedbacks > 0) {
+                foreach ($course->feedbacks as $feedback) {
+                    $totalRating += $feedback->rating;
+                }
+                $averageRating = $totalRating / $countFeedbacks;
+            } else {
+                $averageRating = 0;
+            }
+
+            $course['rating'] = $averageRating;
+        }
 
         if($request->input('with_courses') == 'yes'){
             $path['lone_course'] = Course::whereNull('learning_path_id')->get();
@@ -117,9 +127,6 @@ class LearningPathController extends Controller
         return response()->json(['data' => $path], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -213,9 +220,6 @@ class LearningPathController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request)
     {
         $user = Auth::user();

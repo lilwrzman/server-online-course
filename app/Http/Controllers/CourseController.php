@@ -72,9 +72,6 @@ class CourseController extends Controller
         return response()->json(['data' => $courses], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -149,9 +146,6 @@ class CourseController extends Controller
         return response()->json(['status' => true, 'message' => 'Berhasil menambahkan Course.']);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Request $request, $id)
     {
         $course = Course::with([
@@ -185,9 +179,6 @@ class CourseController extends Controller
         return response()->json(['data' => $course], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -285,9 +276,6 @@ class CourseController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request)
     {
         $user = Auth::user();
