@@ -21,19 +21,27 @@ class LearningController extends Controller
     public function learning(Request $request)
     {
         $user = Auth::user();
-        $item_id = (int) $request->input('item_id');
-        $next_item = (bool) $request->input('next_item');
-        $course_id = (int) $request->input('course');
-        var_dump($item_id);
-        var_dump($request->input('course'));
-        var_dump($next_item);
 
         if($user->role !== 'Student'){
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $validator = Validator::make($request->all(), [
+            'item_id' => 'nullable|int',
+            'next_item' => 'nullable|boolean',
+            'course_id' => 'required|int'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error' => $validator->errors()]);
+        }
+
+        var_dump($request->input('course_id'));
+        var_dump($request->input('item_id'));
+        var_dump($request->input('next_item'));
+
         $course = Course::select('id', 'title', 'description', 'slug')
-            ->findOrFail($course_id);
+            ->findOrFail($request->input('course_id'));
 
         if(!$user->hasAccessToCourse($course->id)){
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -45,8 +53,8 @@ class LearningController extends Controller
             ->with(['item:id,slug,order'])
             ->get(['id', 'user_id', 'item_id', 'is_done']);
 
-        if($item_id) {
-            $item = CourseItem::where('id', $item_id)
+        if($request->input('item_id')) {
+            $item = CourseItem::where('id', $request->input('item_id'))
                 ->with(['questions:id,item_id'])
                 ->where('course_id', $course->id)
                 ->firstOrFail();
@@ -57,7 +65,7 @@ class LearningController extends Controller
                     ->where('order', 1)
                     ->first();
             } else {
-                if ($next_item) {
+                if ($request->input('next_item')) {
                     $latest_completed_item = $completed_items->max('item.order');
                     $next_item = CourseItem::where('course_id', $course->id)
                         ->with(['questions:id,item_id'])
@@ -78,7 +86,7 @@ class LearningController extends Controller
                         'completed_items' => $completed_items,
                         'item' => $next_item
                     ], 200);
-                } else{
+                } else {
                     $latest_completed_item = $completed_items->max('item.order');
                     $item = $completed_items->where('item.order', $latest_completed_item)->first()->item->id;
                     $item = CourseItem::with(['questions:id,item_id'])->findOrFail($item);
