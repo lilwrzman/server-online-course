@@ -124,12 +124,12 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/bundle/get', [CourseBundleController::class, 'index']);
-    Route::get('/bundle/get/{id}', [CourseBundleController::class, 'show']);
+    Route::get('/bundle/get', [CourseBundleController::class, 'index']); // 🟩
+    Route::get('/bundle/get/{id}', [CourseBundleController::class, 'show']); // 🟩
     Route::post('/bundle/add', [CourseBundleController::class, 'store']); // 🟩
     Route::post('/bundle/update', [CourseBundleController::class, 'update']); // 🟩
-    Route::post('/bundle/{id}/change-access', [CourseBundleController::class, 'changeAccess']);
-    Route::post('/redeem/get', [RedeemCodeController::class, 'show']);
+    Route::post('/bundle/{id}/change-access', [CourseBundleController::class, 'changeAccess']); // 🟩
+    Route::post('/redeem/get', [RedeemCodeController::class, 'show']); 
     Route::post('/redeem', [RedeemCodeController::class, 'redeem']);
 });
 // End of Endpoint: Bundle

@@ -17,7 +17,7 @@ class RedeemCodeController extends Controller
     {
         $user = Auth::user();
         if(!$user->role === 'Student'){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+            return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
         $validator = Validator::make($request->all(), [
@@ -49,8 +49,8 @@ class RedeemCodeController extends Controller
     public static function redeem(Request $request)
     {
         $user = Auth::user();
-        if(!$user->role === 'Student' || $user->corporate_id === null){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+        if(!$user->role === 'Student'){
+            return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
         $validator = Validator::make($request->all(), [
