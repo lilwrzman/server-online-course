@@ -165,7 +165,7 @@ Route::group([
     Route::post("/student/learn", [LearningController::class, 'learning']); // 🟩
     Route::post("/student/assessment", [LearningController::class, 'getAssessment']); // 🟩
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']); // 🟩
-    Route::post("/student/assessment/{id}/history", [LearningController::class, 'assessmentHistory']); // 🟩
+    Route::get("/student/assessment/{id}/history", [LearningController::class, 'assessmentHistory']); // 🟩
     Route::get("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
 });
 // End of Endpoint: Student
