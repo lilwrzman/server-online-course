@@ -94,6 +94,8 @@ Route::group([
     Route::post('/course/delete', [CourseController::class, 'destroy']); // 🟩
     Route::post('/course/{id}/remove-teacher', [CourseController::class, 'removeTeacher']); // 🟩
     Route::post('/course/reorder', [CourseController::class, 'reorderCourse']); // 🟩
+    Route::post('/course/{id}/publish', [CourseController::class, 'publish']);
+    Route::post('/course/{id}/unpublish', [CourseController::class, 'unPublish']);
 });
 // End of Endpoint: Courses
 

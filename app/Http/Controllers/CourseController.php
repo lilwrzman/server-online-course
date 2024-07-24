@@ -182,8 +182,8 @@ class CourseController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        if(!$user->role === 'Superadmin'){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+        if(!$user->role === 'Superadmin' && !$user->role === "Teacher"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
         $course = Course::findOrFail($request->input('id'));
@@ -352,5 +352,43 @@ class CourseController extends Controller
         }
 
         return response()->json(['status' => true, 'message' => 'Berhasil mengubah urutan materi pada alur belajar!']);
+    }
+
+    public function publish($id)
+    {
+        $user = Auth::user();
+
+        if(!$user->role === 'Superadmin' && !$user->role === "Teacher"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $published = Course::findOrFail($id)->update([
+            "isPublished" => true
+        ]);
+
+        if(!$published){
+            return response()->json(['error' => 'Gagal memublikasikan materi.'], 500);
+        }
+
+        return response()->json(['status' => true, 'message' => "Publikasi berhasil!", 201]);
+    }
+
+    public function unPublish($id)
+    {
+        $user = Auth::user();
+
+        if(!$user->role === 'Superadmin' && !$user->role === "Teacher"){
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $published = Course::findOrFail($id)->update([
+            "isPublished" => false
+        ]);
+
+        if(!$published){
+            return response()->json(['error' => 'Gagal membatalkan publikasi materi.'], 500);
+        }
+
+        return response()->json(['status' => true, 'message' => "Publikasi berhasil dibatalkan!", 201]);
     }
 }
