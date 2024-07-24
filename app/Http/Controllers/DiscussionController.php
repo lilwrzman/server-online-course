@@ -44,7 +44,7 @@ class DiscussionController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()], 402);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $discuss = Discussion::create([

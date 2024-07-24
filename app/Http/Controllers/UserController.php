@@ -172,7 +172,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $validate_rules, $validate_message);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $field = [
@@ -325,7 +325,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $validate_rules, $validate_message);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         if($user->role == 'Corporate Admin'){
@@ -379,7 +379,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $user = $request->input('id') ? User::findOrFail($request->input('id')) : $user;
@@ -412,7 +412,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $user = User::findOrFail($request->input('id'));
@@ -493,7 +493,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()], 402);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $student = User::where('email', $request->input('email'))->first();
@@ -518,7 +518,7 @@ class UserController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $student = User::where('id', $request->input('student_id'))

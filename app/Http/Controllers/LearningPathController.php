@@ -142,7 +142,7 @@ class LearningPathController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $path->slug = null;
@@ -164,7 +164,7 @@ class LearningPathController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             if(Storage::exists('public/' . $path->thumbnail) && !str_contains($path->thumbnail, 'thumbnail.png')){
@@ -189,7 +189,7 @@ class LearningPathController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $selected_course_ids = explode(',', $request->input('selected_course'));

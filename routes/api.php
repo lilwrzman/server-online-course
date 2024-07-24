@@ -200,12 +200,12 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::post("/student/progress/update", [LearningController::class, 'updateProgress']);
-    Route::get("/student/progress", [LearningController::class, 'getProgress']);
-    Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']);
-    Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']);
-    Route::get("/course/progress", [LearningController::class, 'getCourseProgress']);
-    Route::get("/course/progress/detail/{id}", [LearningController::class, 'getCourseProgressDetail']);
+    Route::post("/student/progress/update", [LearningController::class, 'updateProgress']); // 🟩
+    Route::get("/student/progress", [LearningController::class, 'getProgress']); // 🟩
+    Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']); // 🟩
+    Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']); // 🟩
+    Route::get("/course/progress", [LearningController::class, 'getCourseProgress']); // 🟩
+    Route::get("/course/progress/detail/{id}", [LearningController::class, 'getCourseProgressDetail']); // 🟩
 });
 // End of Endpoint: Progress
 
@@ -214,36 +214,36 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::get("/course/{id}/discussion", [DiscussionController::class, 'courseDiscussion']);
-    Route::post("/discussion/post", [DiscussionController::class, 'postDiscussion']);
+    Route::get("/course/{id}/discussion", [DiscussionController::class, 'courseDiscussion']); // 🟩
+    Route::post("/discussion/post", [DiscussionController::class, 'postDiscussion']); // 🟩
 });
 // End of Endpoint: Discussion
 
 // Endpoint: Events
-Route::get('/events/get', [EventController::class, 'index']);
-Route::get('/event/get/{id}', [EventController::class, 'show']);
+Route::get('/events/get', [EventController::class, 'index']); // 🟩
+Route::get('/event/get/{id}', [EventController::class, 'show']); // 🟩
 
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::post('/event/add', [EventController::class, 'store']);
-    Route::post('/event/update', [EventController::class, 'update']);
-    Route::post('/event/change-thumbnail', [EventController::class, 'changeThumbnail']);
-    Route::post('/event/delete', [EventController::class, 'destroy']);
+    Route::post('/event/add', [EventController::class, 'store']); // 🟩
+    Route::post('/event/update', [EventController::class, 'update']); // 🟩
+    Route::post('/event/change-thumbnail', [EventController::class, 'changeThumbnail']); // 🟩
+    Route::post('/event/delete', [EventController::class, 'destroy']); // 🟩
 });
 // End of Endpoint: Events
 
 // Endpoint: Articles
-Route::get('/articles/get', [ArticleController::class, 'index']);
-Route::get('/article/get/{id}', [ArticleController::class, 'show']);
+Route::get('/articles/get', [ArticleController::class, 'index']); // 🟩
+Route::get('/article/get/{id}', [ArticleController::class, 'show']); // 🟩
 
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::post('/article/add', [ArticleController::class, 'store']);
-    Route::post('/article/update', [ArticleController::class, 'update']);
-    Route::post('/article/change-thumbnail', [ArticleController::class, 'changeThumbnail']);
-    Route::post('/article/delete', [ArticleController::class, 'destroy']);
+    Route::post('/article/add', [ArticleController::class, 'store']); // 🟩
+    Route::post('/article/update', [ArticleController::class, 'update']); // 🟩
+    Route::post('/article/change-thumbnail', [ArticleController::class, 'changeThumbnail']); // 🟩
+    Route::post('/article/delete', [ArticleController::class, 'destroy']); // 🟩
 });
 // End of Endpoint: Articles
 
@@ -252,7 +252,7 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::get('/certificate/{course_id}', [CertificateController::class, 'get']);
+    Route::get('/certificate/{course_id}', [CertificateController::class, 'get']); // 🟩
 });
 // End of Endpoint: Certificate
 
@@ -261,7 +261,7 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::get("/notification/get", [NotificationController::class, 'index']);
-    Route::post("/notification/update", [NotificationController::class, 'updateSeen']);
+    Route::get("/notification/get", [NotificationController::class, 'index']); // 🟩
+    Route::post("/notification/update", [NotificationController::class, 'updateSeen']); // 🟩
 });
 // End of Endpoint: Notification

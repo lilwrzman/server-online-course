@@ -100,7 +100,7 @@ class CourseController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $field = $request->all();
@@ -174,7 +174,7 @@ class CourseController extends Controller
         }
 
         $course['rating'] = $averageRating;
-        
+
         if($request->input('with_teachers') == 'yes'){
             $course['teachers'] = User::where('id', '!=', $course->teacher_id)
                 ->where('role', '=', 'Teacher')->get();
@@ -213,7 +213,7 @@ class CourseController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $course->slug = null;
@@ -236,7 +236,7 @@ class CourseController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             if(Storage::exists('public/' . $course->thumbnail) && !str_contains($course->thumbnail, 'thumbnail.png')){
@@ -261,7 +261,7 @@ class CourseController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $course->teacher_id = $request->input('teacher_id');
@@ -275,7 +275,7 @@ class CourseController extends Controller
             ]);
 
             if($validator->fails()){
-                return response()->json(['error' => $validator->errors()]);
+                return response()->json(['error' => $validator->errors()], 422);
             }
 
             $course->price = $request->input('price');

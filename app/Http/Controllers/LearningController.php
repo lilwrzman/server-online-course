@@ -33,7 +33,7 @@ class LearningController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()], 402);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
         $course = Course::select('id', 'title', 'description', 'slug')
@@ -145,7 +145,7 @@ class LearningController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error_validator' => $validator->errors()], 400);
+            return response()->json(['error_validator' => $validator->errors()], 422);
         }
 
         $what_to_select = $show_answer ? ['id', 'item_id', 'question', 'options', 'correct_answer'] : ['id', 'item_id', 'question', 'options'];
@@ -174,7 +174,7 @@ class LearningController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error_validator' => $validator->errors()], 400);
+            return response()->json(['error_validator' => $validator->errors()], 422);
         }
 
         $item = CourseItem::findOrFail($item_id);
