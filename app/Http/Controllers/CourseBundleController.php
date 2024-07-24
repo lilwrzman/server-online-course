@@ -16,26 +16,26 @@ class CourseBundleController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $bundles = [];
-        if(!$user->role === 'Superadmin' || !$user->role === 'Corporate Admin' ){
-            return response()->json(['error' => 'Unauthenticated.'], 401);
-        }
 
         if($user->role === 'Superadmin'){
             $bundles = CourseBundle::with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])->get();
-        }else{
+
+            return response()->json(['status' => true, 'data' => $bundles], 200);
+        }else if($user->role === 'Corporate Admin'){
             $bundles = CourseBundle::where('corporate_id', $user->id)
                         ->with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])
                         ->get();
-        }
 
-        return response()->json(['status' => true, 'data' => $bundles], 200);
+            return response()->json(['status' => true, 'data' => $bundles], 200);
+        }else {
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
     }
 
     public function show($id)
     {
         $user = Auth::user();
-        if(!$user->role === 'Superadmin' || !$user->role === 'Corporate Admin' ){
+        if(!$user->role === 'Superadmin' && !$user->role === 'Corporate Admin' ){
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 

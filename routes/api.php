@@ -100,19 +100,22 @@ Route::group([
 
 // Endpoint: Course Items
 Route::get('/course/{id}/items/get', [CourseItemController::class, 'index']); // 🟩
-Route::get('/video/playlist/{course_id}/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist');
+Route::get('/video/playlist/{course_id}/{uniqid}/{playlist}', [CourseItemController::class, 'playlist'])->name('video.playlist'); // 🟩
 
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/video/key/{course_id}/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key');
+    Route::get('/video/key/{course_id}/{uniqid}/{key}', [CourseItemController::class, 'key'])->name('video.key'); // 🟩
     Route::get('/items/get/{id}', [CourseItemController::class, 'show']); // 🟩
     Route::post('/items/reorder', [CourseItemController::class, 'reorderItems']); // 🟩
     Route::post('/course/{id}/assessment/add', [CourseItemController::class, 'storeAssessment']);  // 🟩
     Route::post('/course/{id}/video/add', [CourseItemController::class, 'storeVideo']); // 🟩
-    Route::post('/assessment/{id}/update', [CourseItemController::class, 'updateAssessment']); // Update Assessment by Item's ID
+    Route::post('/assessment/{id}/update', [CourseItemController::class, 'updateAssessment']); // 🟩
     Route::post('/assessment/delete', [CourseItemController::class, 'deleteAssessment']); // 🟩
     Route::post('/video/delete', [CourseItemController::class, 'deleteVideo']); // 🟩
+
+    // TO DO
+    Route::post('/video/{id}/update', [CourseItemController::class, 'updateVideo']);
 });
 // End of Endpoint: Course Items
 

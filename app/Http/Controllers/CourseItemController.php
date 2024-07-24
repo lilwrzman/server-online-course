@@ -104,6 +104,14 @@ class CourseItemController extends Controller
         }
     }
 
+    public function updateVideo(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user->role === 'Superadmin' || !$user->role === 'Teacher') {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+    }
+
     public function storeAssessment(Request $request, $id)
     {
         $user = Auth::user();
