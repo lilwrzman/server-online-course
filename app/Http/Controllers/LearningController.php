@@ -23,6 +23,7 @@ class LearningController extends Controller
         $user = Auth::user();
         $item_id = $request->input('item_id');
         $next_item = $request->input('next_item');
+        var_dump($next_item);
 
         if($user->role !== 'Student'){
             return response()->json(['error' => 'Unauthorized'], 401);
