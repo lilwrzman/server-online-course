@@ -26,10 +26,6 @@ class LearningController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        var_dump($request->input('course_id'));
-        var_dump($request->input('item_id'));
-        var_dump($request->input('next_item'));
-
         $validator = Validator::make($request->all(), [
             'item_id' => 'nullable|int',
             'next_item' => 'nullable|boolean',
