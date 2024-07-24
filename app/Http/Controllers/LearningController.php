@@ -33,7 +33,7 @@ class LearningController extends Controller
         ]);
 
         if($validator->fails()){
-            return response()->json(['error' => $validator->errors()]);
+            return response()->json(['error' => $validator->errors()], 402);
         }
 
         var_dump($request->input('course'));
