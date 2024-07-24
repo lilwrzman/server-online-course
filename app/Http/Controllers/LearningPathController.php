@@ -104,6 +104,8 @@ class LearningPathController extends Controller
     {
         $path = LearningPath::with('courses')->findOrFail($id);
 
+        $coursesWithRatings = [];
+
         if ($path->relationLoaded('courses')) {
             foreach ($path->courses as $course) {
                 $totalRating = 0;
@@ -119,13 +121,15 @@ class LearningPathController extends Controller
                     $averageRating = 0;
                 }
 
-                $course['rating'] = $averageRating;
+                $coursesWithRatings[] = $course->toArray() + ['rating' => $averageRating];
             }
         }
 
         if($request->input('with_courses') == 'yes'){
             $path['lone_course'] = Course::whereNull('learning_path_id')->get();
         }
+
+        $path->courses = $coursesWithRatings;
 
         return response()->json(['data' => $path], 200);
     }
