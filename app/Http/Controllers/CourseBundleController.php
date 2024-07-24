@@ -18,12 +18,15 @@ class CourseBundleController extends Controller
         $user = Auth::user();
 
         if($user->role === 'Superadmin'){
-            $bundles = CourseBundle::with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])->get();
+            $bundles = CourseBundle::with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])
+                        ->orderBy('created_at', 'desc')
+                        ->get();
 
             return response()->json(['status' => true, 'data' => $bundles], 200);
         }else if($user->role === 'Corporate Admin'){
             $bundles = CourseBundle::where('corporate_id', $user->id)
                         ->with(['redeemCode:id,code', 'bundleItems.course', 'redeemCode.redeemHistory'])
+                        ->orderBy('created_at', 'desc')
                         ->get();
 
             return response()->json(['status' => true, 'data' => $bundles], 200);
