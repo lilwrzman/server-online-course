@@ -163,10 +163,10 @@ Route::group([
 ], function(){
     Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']); // 🟩
     Route::post("/student/learn", [LearningController::class, 'learning']); // 🟩
-    Route::post("/student/assessment", [LearningController::class, 'getAssessment']); 
-    Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']);
-    Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']);
-    Route::post("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
+    Route::post("/student/assessment", [LearningController::class, 'getAssessment']); // 🟩
+    Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']); // 🟩
+    Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']); // 🟩
+    Route::get("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
 });
 // End of Endpoint: Student
 
