@@ -29,6 +29,7 @@ class UserSeeder extends Seeder
             'status' => 'Active',
             'info' => [
                 'fullname' => 'Yunizel Bach',
+                'bio' => "",
                 'social_media' => [
                     [
                         'type' => 'Facebook',
@@ -51,6 +52,7 @@ class UserSeeder extends Seeder
             'status' => 'Active',
             'info' => [
                 'fullname' => 'Yusriadi',
+                'bio' => "",
                 'social_media' => [
                     [
                         'type' => 'Facebook',
