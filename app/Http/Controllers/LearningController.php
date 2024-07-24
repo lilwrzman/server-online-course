@@ -257,25 +257,16 @@ class LearningController extends Controller
         return response()->json(['status' => true, 'message' => $result, 'title' => $isPass ? 'Selamat!' : 'Oops!'], 200);
     }
 
-    public function assessmentHistory(Request $request)
+    public function assessmentHistory($id)
     {
         $user = Auth::user();
-        $item_id = $request->input('item_id');
 
         if($user->role != 'Student'){
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $validator = Validator::make($request->all(), [
-            'item_id' => 'required|int'
-        ]);
-
-        if($validator->fails()){
-            return response()->json(['error_validator' => $validator->errors()], 400);
-        }
-
         $histories = AssessmentHistory::where('user_id', $user->id)
-                        ->where('item_id', $item_id)
+                        ->where('item_id', $id)
                         ->get();
 
         return response()->json(['status' => true, 'data' => $histories], 200);
