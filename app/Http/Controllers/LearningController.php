@@ -21,8 +21,9 @@ class LearningController extends Controller
     public function learning(Request $request)
     {
         $user = Auth::user();
-        $item_id = $request->input('item_id');
-        $next_item = $request->input('next_item');
+        $item_id = (int) $request->input('item_id');
+        $next_item = (bool) $request->input('next_item');
+        $course_id = (int) $request->input('course');
         var_dump($item_id);
         var_dump($request->input('course'));
         var_dump($next_item);
@@ -32,7 +33,7 @@ class LearningController extends Controller
         }
 
         $course = Course::select('id', 'title', 'description', 'slug')
-            ->findOrFail($request->input('course'));
+            ->findOrFail($course_id);
 
         if(!$user->hasAccessToCourse($course->id)){
             return response()->json(['error' => 'Unauthorized'], 401);
