@@ -26,14 +26,14 @@ class LearningController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        var_dump($request->input('course'));
+        var_dump($request->input('course_id'));
         var_dump($request->input('item_id'));
         var_dump($request->input('next_item'));
 
         $validator = Validator::make($request->all(), [
             'item_id' => 'nullable|int',
             'next_item' => 'nullable|boolean',
-            'course' => 'required|int'
+            'course_id' => 'required|int'
         ]);
 
         if($validator->fails()){
@@ -41,7 +41,7 @@ class LearningController extends Controller
         }
 
         $course = Course::select('id', 'title', 'description', 'slug')
-            ->findOrFail($request->input('course'));
+            ->findOrFail($request->input('course_id'));
 
         if(!$user->hasAccessToCourse($course->id)){
             return response()->json(['error' => 'Unauthorized'], 401);
