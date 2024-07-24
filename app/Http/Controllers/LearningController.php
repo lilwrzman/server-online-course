@@ -29,19 +29,19 @@ class LearningController extends Controller
         $validator = Validator::make($request->all(), [
             'item_id' => 'nullable|int',
             'next_item' => 'nullable|boolean',
-            'course_id' => 'required|int'
+            'course' => 'required|int'
         ]);
 
         if($validator->fails()){
             return response()->json(['error' => $validator->errors()]);
         }
 
-        var_dump($request->input('course_id'));
+        var_dump($request->input('course'));
         var_dump($request->input('item_id'));
         var_dump($request->input('next_item'));
 
         $course = Course::select('id', 'title', 'description', 'slug')
-            ->findOrFail($request->input('course_id'));
+            ->findOrFail($request->input('course'));
 
         if(!$user->hasAccessToCourse($course->id)){
             return response()->json(['error' => 'Unauthorized'], 401);
