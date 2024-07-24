@@ -166,20 +166,20 @@ Route::group([
     Route::post("/student/assessment", [LearningController::class, 'getAssessment']); // 🟩
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']); // 🟩
     Route::get("/student/assessment/{id}/history", [LearningController::class, 'assessmentHistory']); // 🟩
-    Route::get("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);
+    Route::get("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']); // 🟩
 });
 // End of Endpoint: Student
 
 
 // Endpoint: Feedback
-Route::get("/course/{id}/feedback", [FeedbackController::class, 'courseFeedback']);
-Route::get("/feedback/get", [FeedbackController::class, 'index']);
+Route::get("/course/{id}/feedback", [FeedbackController::class, 'courseFeedback']); // 🟩
+Route::get("/feedback/get", [FeedbackController::class, 'index']); // 🟩
 
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get("/course/{id}/student/feedback", [FeedbackController::class, 'studentFeedback']);
-    Route::post("/course/feedback/post", [FeedbackController::class, 'postFeedback']);
+    Route::get("/course/{id}/student/feedback", [FeedbackController::class, 'studentFeedback']); // 🟩
+    Route::post("/course/feedback/post", [FeedbackController::class, 'postFeedback']); // 🟩
 });
 // End of Endpoint: Feedback
 
@@ -188,10 +188,10 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get("/teacher/student", [UserController::class, 'teacherStudent']);
-    Route::get("/corporate/student", [UserController::class, 'corporateStudentList']);
-    Route::post("/corporate/student/check", [UserController::class, 'checkByEmail']);
-    Route::post("/corporate/student/add", [UserController::class, 'addToCorporate']);
+    Route::get("/teacher/student", [UserController::class, 'teacherStudent']); // 🟩
+    Route::get("/corporate/student", [UserController::class, 'corporateStudentList']); // 🟩
+    Route::post("/corporate/student/check", [UserController::class, 'checkByEmail']); // 🟩
+    Route::post("/corporate/student/add", [UserController::class, 'addToCorporate']); // 🟩
 });
 // End of Endpoint: Student List
 
@@ -200,8 +200,8 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api'],
 ], function(){
-    Route::post("/sudent/progress/update", [LearningController::class, 'updateProgress']);
-    Route::get("/sudent/progress", [LearningController::class, 'getProgress']);
+    Route::post("/student/progress/update", [LearningController::class, 'updateProgress']);
+    Route::get("/student/progress", [LearningController::class, 'getProgress']);
     Route::get("/corporate/progress", [LearningController::class, 'getStudentListProgress']);
     Route::get("/corporate/progress/{id}", [LearningController::class, 'getStudentProgressDetail']);
     Route::get("/course/progress", [LearningController::class, 'getCourseProgress']);
