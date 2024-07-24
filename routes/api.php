@@ -129,8 +129,8 @@ Route::group([
     Route::post('/bundle/add', [CourseBundleController::class, 'store']); // 🟩
     Route::post('/bundle/update', [CourseBundleController::class, 'update']); // 🟩
     Route::post('/bundle/{id}/change-access', [CourseBundleController::class, 'changeAccess']); // 🟩
-    Route::post('/redeem/get', [RedeemCodeController::class, 'show']); 
-    Route::post('/redeem', [RedeemCodeController::class, 'redeem']);
+    Route::post('/redeem/get', [RedeemCodeController::class, 'show']); // 🟩
+    Route::post('/redeem', [RedeemCodeController::class, 'redeem']); // 🟩
 });
 // End of Endpoint: Bundle
 
@@ -139,7 +139,7 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/dashboard', [DashboardController::class, 'dashboard']);
+    Route::get('/dashboard', [DashboardController::class, 'dashboard']); // 🟩
 });
 // End of Endpoint: Dashboard
 
@@ -148,11 +148,11 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/transaction/export', [TransactionController::class, 'export']);
-    Route::get('/transaction/histories', [TransactionController::class, 'transactionHistory']);
-    Route::post('/checkout/process', [TransactionController::class, 'process']);
-    Route::post('/checkout/success/{id}', [TransactionController::class, 'success']);
-    Route::post('/checkout/pending/{id}', [TransactionController::class, 'pending']);
+    Route::get('/transaction/export', [TransactionController::class, 'export']); // 🟩
+    Route::get('/transaction/histories', [TransactionController::class, 'transactionHistory']); // 🟩
+    Route::post('/checkout/process', [TransactionController::class, 'process']); // 🟩
+    Route::post('/checkout/success/{id}', [TransactionController::class, 'success']); // 🟩
+    Route::post('/checkout/pending/{id}', [TransactionController::class, 'pending']); // 🟩
 });
 // End of Endpoint: Transaction
 
@@ -161,9 +161,9 @@ Route::group([
 Route::group([
     "middleware" => ['auth:api']
 ], function(){
-    Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']);
-    Route::post("/student/learn", [LearningController::class, 'learning']);
-    Route::post("/student/assessment", [LearningController::class, 'getAssessment']);
+    Route::get('/student/my-courses', [CourseAccessController::class, 'myCourses']); // 🟩
+    Route::post("/student/learn", [LearningController::class, 'learning']); // 🟩
+    Route::post("/student/assessment", [LearningController::class, 'getAssessment']); 
     Route::post("/student/assessment/submit", [LearningController::class, 'submitAssessment']);
     Route::post("/student/assessment/history", [LearningController::class, 'assessmentHistory']);
     Route::post("/student/assessment/history/{id}", [LearningController::class, 'detailHistory']);

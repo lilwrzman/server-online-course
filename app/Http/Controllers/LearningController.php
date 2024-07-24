@@ -140,7 +140,7 @@ class LearningController extends Controller
             return response()->json(['error_validator' => $validator->errors()], 400);
         }
 
-        $what_to_select = $show_answer ? ['id', 'item_id', 'question', 'options', 'correct_answer'] : ['id', 'item_id', 'questions', 'option'];
+        $what_to_select = $show_answer ? ['id', 'item_id', 'question', 'options', 'correct_answer'] : ['id', 'item_id', 'question', 'option'];
         $item = CourseItem::whereIn('type', ['Quiz', 'Exam'])
             ->with(["questions" => function($query) use ($what_to_select){
                 $query->select($what_to_select);
