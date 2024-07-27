@@ -39,7 +39,7 @@ class DiscussionController extends Controller
 
         $validator = Validator::make($request->all(), [
             'course_id' => 'required|int',
-            'parent_id' => 'sometimes|int',
+            'parent_id' => 'nullable|int',
             'content' => 'required|string'
         ]);
 
