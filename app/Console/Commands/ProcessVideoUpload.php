@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use FFMpeg\Format\Video\X264;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
@@ -30,23 +31,29 @@ class ProcessVideoUpload extends Command
     {
         $video_uniqid = $this->argument('video_uniqid');
         $video_extention = $this->argument('video_extention');
-        // $lowFormat = (new X264('aac'))->setKiloBitrate(500);
-        // $highFormat = (new X264('aac'))->setKiloBitrate(1000);
+        $inputFilePath = $video_uniqid . '.' . $video_extention;
         $outputPath = "videos/{$video_uniqid}/{$video_uniqid}.m3u8";
 
-        FFMpeg::fromDisk('uploads')
-            ->open($video_uniqid . '.' . $video_extention)
-            ->exportForHLS()
-            ->withRotatingEncryptionKey(function($filename, $contents) use ($video_uniqid){
-                Storage::disk('secrets')->put($video_uniqid . '/' . $filename, $contents);
-                $keyPath = Storage::disk('secrets')->url($video_uniqid . '/' . $filename);
-                return $keyPath;
-            })
-            // ->addFormat($lowFormat)
-            // ->addFormat($highFormat)
-            ->toDisk('public')
-            ->save($outputPath);
+        try{
+            Log::info("Starting HLS export for video: {$inputFilePath}");
 
-        $this->info($outputPath);
+            FFMpeg::fromDisk('uploads')
+                ->open($inputFilePath)
+                ->exportForHLS()
+                ->withRotatingEncryptionKey(function($filename, $contents) use ($video_uniqid){
+                    Storage::disk('secrets')->put($video_uniqid . '/' . $filename, $contents);
+                    $keyPath = Storage::disk('secrets')->url($video_uniqid . '/' . $filename);
+                    return $keyPath;
+                })
+                ->toDisk('public')
+                ->save($outputPath);
+
+            Log::info("HLS export completed for video: {$video_uniqid}, output saved at: {$outputPath}");
+            $this->info($outputPath);
+        } catch (\Exception $e) {
+            Log::error("Failed to process video: {$inputFilePath}, error: " . $e->getMessage());
+            $this->error('Failed to process video: ' . $e->getMessage());
+        }
+
     }
 }

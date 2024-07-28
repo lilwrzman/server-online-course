@@ -68,15 +68,13 @@ class CourseItemController extends Controller
                 'video_extention' => $file->getClientOriginalExtension()
             ]);
 
-            $playlistPath = trim(Artisan::output());
-
             $item = CourseItem::create([
                 "course_id" => $course->id,
                 "type" => "Video",
                 "title" => $request->input('title'),
                 "description" => $request->input('description'),
                 "info" => [
-                    "playlist_path" => $playlistPath,
+                    "playlist_path" => "videos/{$uniqid}/{$uniqid}.m3u8",
                     "duration" => $duration,
                     "playlist" => $uniqid . ".m3u8"
                 ],
@@ -165,11 +163,9 @@ class CourseItemController extends Controller
                     'video_extention' => $file->getClientOriginalExtension()
                 ]);
 
-                $playlistPath = trim(Artisan::output());
-
                 $courseItem->update([
                     "info" => [
-                        "playlist_path" => $playlistPath,
+                        "playlist_path" => "videos/{$uniqid}/{$uniqid}.m3u8",
                         "duration" => $duration,
                         "playlist" => $uniqid . ".m3u8"
                     ]
