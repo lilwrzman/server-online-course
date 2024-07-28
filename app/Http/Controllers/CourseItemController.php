@@ -134,12 +134,16 @@ class CourseItemController extends Controller
                 if (isset($courseItem->info['playlist_path'])) {
                     $path = explode('/', $courseItem->info['playlist_path'])[1];
 
+                    Log::info('Path to delete: ' . $path);
+
                     if(Storage::exists('public/videos/' . $path)){
                         Storage::deleteDirectory('public/videos/' . $path);
+                        Log::info('Video segments in ' . $path .  ' deleted successfully!');
                     }
 
                     if(Storage::disk('secrets')->exists($path)){
                         Storage::disk('secrets')->deleteDirectory($path);
+                        Log::info('Videk keys in ' . $path .  ' deleted successfully!');
                     }
                 }
 
