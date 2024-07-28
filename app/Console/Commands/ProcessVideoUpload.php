@@ -30,7 +30,7 @@ class ProcessVideoUpload extends Command
     {
         $video_uniqid = $this->argument('video_uniqid');
         $video_extention = $this->argument('video_extention');
-        $lowFormat = (new X264('aac'))->setKiloBitrate(500);
+        // $lowFormat = (new X264('aac'))->setKiloBitrate(500);
         // $highFormat = (new X264('aac'))->setKiloBitrate(1000);
         $outputPath = "videos/{$video_uniqid}/{$video_uniqid}.m3u8";
 
@@ -42,7 +42,7 @@ class ProcessVideoUpload extends Command
                 $keyPath = Storage::disk('secrets')->url($video_uniqid . '/' . $filename);
                 return $keyPath;
             })
-            ->addFormat($lowFormat)
+            // ->addFormat($lowFormat)
             // ->addFormat($highFormat)
             ->toDisk('public')
             ->save($outputPath);

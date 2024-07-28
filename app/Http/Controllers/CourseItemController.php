@@ -31,15 +31,15 @@ class CourseItemController extends Controller
         $course = Course::findOrFail($id);
 
         if (!$user->role === 'Superadmin' || !$user->role === 'Teacher') {
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+            return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
         if ($user->role === 'Teacher' && $user->id != $course->teacher_id) {
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+            return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|unique:course_items',
+            'title' => 'required|string',
             'description' => 'required|string',
             'video_file' => 'required|file|mimes:mp4|max:250000'
         ]);
@@ -107,8 +107,79 @@ class CourseItemController extends Controller
     public function updateVideo(Request $request, $id)
     {
         $user = Auth::user();
-        if (!$user->role === 'Superadmin' || !$user->role === 'Teacher') {
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+
+        if (!($user->role === 'Superadmin' || $user->role === 'Teacher')) {
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string',
+            'description' => 'required|string',
+            'video_file' => 'nullable|file|mimes:mp4|max:250000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $courseItem = CourseItem::findOrFail($id);
+            $courseItem->update([
+                "title" => $request->input('title'),
+                "description" => $request->input('description')
+            ]);
+
+            if($request->hasFile('video_file')){
+                if (isset($courseItem->info['playlist_path'])) {
+                    $path = explode('/', $courseItem->info['playlist_path'])[1];
+
+                    if(Storage::exists('public/videos/' . $path)){
+                        Storage::deleteDirectory('public/videos/' . $path);
+                    }
+
+                    if(Storage::disk('secrets')->exists($path)){
+                        Storage::disk('secrets')->deleteDirectory($path);
+                    }
+                }
+
+                $file = $request->file('video_file');
+                $uniqid = uniqid();
+                $newFileName = $uniqid . '.' . $file->getClientOriginalExtension();
+                $filePath = Storage::disk('uploads')->put($newFileName, file_get_contents($file));
+                $folderName = $uniqid;
+
+                if (!$filePath) {
+                    return response()->json(['status' => false, 'message' => 'Gagal upload video'], 400);
+                }
+
+                $media = FFMpeg::fromDisk('uploads')->open($newFileName);
+                $duration = gmdate('H:i:s', $media->getDurationInSeconds());
+
+                Artisan::call('app:process-video-upload', [
+                    'video_uniqid' => $uniqid,
+                    'video_extention' => $file->getClientOriginalExtension()
+                ]);
+
+                $playlistPath = trim(Artisan::output());
+
+                $courseItem->update([
+                    "info" => [
+                        "playlist_path" => $playlistPath,
+                        "duration" => $duration,
+                        "playlist" => $uniqid . ".m3u8"
+                    ]
+                ]);
+            }
+
+            Storage::disk('uploads')->delete($newFileName);
+
+            DB::commit();
+            return response()->json(['status' => true, 'message' => 'Berhasil mengubah data video!']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['status' => false, 'message' => 'Gagal mengubah data video!', "exception" => $e->getMessage()], 400);
         }
     }
 
@@ -383,12 +454,6 @@ class CourseItemController extends Controller
 
 
     public function update(Request $request, CourseItem $courseItem)
-    {
-        //
-    }
-
-
-    public function destroy(CourseItem $courseItem)
     {
         //
     }
