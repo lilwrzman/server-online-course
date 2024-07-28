@@ -129,39 +129,40 @@ class CourseItemController extends Controller
             ]);
 
             if($request->hasFile('video_file')){
-                if (isset($courseItem->info['playlist_path'])) {
-                    $path = explode('/', $courseItem->info['playlist_path'])[1];
+                $path = explode('/', $courseItem->info['playlist_path'])[1];
 
-                    Log::info('Path to delete: ' . $path);
+                if(Storage::exists('public/videos/' . $path)){
+                    Storage::deleteDirectory('public/videos/' . $path);
+                    Log::info('Video segments in ' . $path .  ' deleted successfully!');
+                }
 
-                    if(Storage::exists('public/videos/' . $path)){
-                        Storage::deleteDirectory('public/videos/' . $path);
-                        Log::info('Video segments in ' . $path .  ' deleted successfully!');
-                    }
-
-                    if(Storage::disk('secrets')->exists($path)){
-                        Storage::disk('secrets')->deleteDirectory($path);
-                        Log::info('Videk keys in ' . $path .  ' deleted successfully!');
-                    }
+                if(Storage::disk('secrets')->exists($path)){
+                    Storage::disk('secrets')->deleteDirectory($path);
+                    Log::info('Videk keys in ' . $path .  ' deleted successfully!');
                 }
 
                 $file = $request->file('video_file');
                 $uniqid = uniqid();
                 $newFileName = $uniqid . '.' . $file->getClientOriginalExtension();
                 $filePath = Storage::disk('uploads')->put($newFileName, file_get_contents($file));
-                $folderName = $uniqid;
 
                 if (!$filePath) {
                     return response()->json(['status' => false, 'message' => 'Gagal upload video'], 400);
                 }
 
+                Log::info('Video temporary placed in ' . $filePath);
+
                 $media = FFMpeg::fromDisk('uploads')->open($newFileName);
                 $duration = gmdate('H:i:s', $media->getDurationInSeconds());
+
+                Log::info('Start artisan command!');
 
                 Artisan::call('app:process-video-upload', [
                     'video_uniqid' => $uniqid,
                     'video_extention' => $file->getClientOriginalExtension()
                 ]);
+
+                Log::info('Artisan command finished!');
 
                 $courseItem->update([
                     "info" => [
@@ -170,10 +171,10 @@ class CourseItemController extends Controller
                         "playlist" => $uniqid . ".m3u8"
                     ]
                 ]);
+
+                Storage::disk('uploads')->delete($newFileName);
             }
-
-            Storage::disk('uploads')->delete($newFileName);
-
+            
             DB::commit();
             return response()->json(['status' => true, 'message' => 'Berhasil mengubah data video!']);
         } catch (\Exception $e) {
