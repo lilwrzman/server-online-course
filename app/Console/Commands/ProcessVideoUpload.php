@@ -36,8 +36,6 @@ class ProcessVideoUpload extends Command
         $outputPath = "videos/{$video_uniqid}/{$video_uniqid}.m3u8";
 
         try{
-            Log::info("Starting HLS export for video: {$inputFilePath}");
-
             FFMpeg::fromDisk('uploads')
                 ->open($inputFilePath)
                 ->exportForHLS()
@@ -50,10 +48,8 @@ class ProcessVideoUpload extends Command
                 ->toDisk('public')
                 ->save($outputPath);
 
-            Log::info("HLS export completed for video: {$video_uniqid}, output saved at: {$outputPath}");
             $this->info($outputPath);
         } catch (\Exception $e) {
-            Log::error("Failed to process video: {$inputFilePath}, error: " . $e->getMessage());
             $this->error('Failed to process video: ' . $e->getMessage());
         }
     }

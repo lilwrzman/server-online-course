@@ -133,12 +133,10 @@ class CourseItemController extends Controller
 
                 if(Storage::exists('public/videos/' . $path)){
                     Storage::deleteDirectory('public/videos/' . $path);
-                    Log::info('Video segments in ' . $path .  ' deleted successfully!');
                 }
 
                 if(Storage::disk('secrets')->exists($path)){
                     Storage::disk('secrets')->deleteDirectory($path);
-                    Log::info('Videk keys in ' . $path .  ' deleted successfully!');
                 }
 
                 $file = $request->file('video_file');
@@ -150,19 +148,13 @@ class CourseItemController extends Controller
                     return response()->json(['status' => false, 'message' => 'Gagal upload video'], 400);
                 }
 
-                Log::info('Video temporary placed in ' . $filePath);
-
                 $media = FFMpeg::fromDisk('uploads')->open($newFileName);
                 $duration = gmdate('H:i:s', $media->getDurationInSeconds());
-
-                Log::info('Start artisan command!');
 
                 Artisan::call('app:process-video-upload', [
                     'video_uniqid' => $uniqid,
                     'video_extention' => $file->getClientOriginalExtension()
                 ]);
-
-                Log::info('Artisan command finished!');
 
                 $courseItem->update([
                     "info" => [
@@ -174,7 +166,7 @@ class CourseItemController extends Controller
 
                 Storage::disk('uploads')->delete($newFileName);
             }
-            
+
             DB::commit();
             return response()->json(['status' => true, 'message' => 'Berhasil mengubah data video!']);
         } catch (\Exception $e) {
@@ -496,15 +488,14 @@ class CourseItemController extends Controller
         $course = Course::findOrFail($item->course_id);
         DB::beginTransaction();
         try{
-            $path = $item->info['playlist_path'];
-            $pathToCheck = Str::slug($course->title) . '_' . Str::slug($item->title);
+            $path = explode('/', $item->info['playlist_path'])[1];
 
-            if (Storage::exists('public/videos/' . $pathToCheck)) {
-                Storage::deleteDirectory('public/videos/' . $pathToCheck);
+            if(Storage::exists('public/videos/' . $path)){
+                Storage::deleteDirectory('public/videos/' . $path);
             }
 
-            if(Storage::disk('secrets')->exists($pathToCheck)){
-                Storage::disk('secrets')->deleteDirectory($pathToCheck);
+            if(Storage::disk('secrets')->exists($path)){
+                Storage::disk('secrets')->deleteDirectory($path);
             }
 
             $item->delete();
