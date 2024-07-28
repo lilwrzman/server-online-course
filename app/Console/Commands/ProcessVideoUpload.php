@@ -29,6 +29,7 @@ class ProcessVideoUpload extends Command
      */
     public function handle()
     {
+        $lowFormat = (new X264('aac'))->setKiloBitrate(500);
         $video_uniqid = $this->argument('video_uniqid');
         $video_extention = $this->argument('video_extention');
         $inputFilePath = $video_uniqid . '.' . $video_extention;
@@ -45,6 +46,7 @@ class ProcessVideoUpload extends Command
                     $keyPath = Storage::disk('secrets')->url($video_uniqid . '/' . $filename);
                     return $keyPath;
                 })
+                ->addFormat($lowFormat)
                 ->toDisk('public')
                 ->save($outputPath);
 
@@ -54,6 +56,5 @@ class ProcessVideoUpload extends Command
             Log::error("Failed to process video: {$inputFilePath}, error: " . $e->getMessage());
             $this->error('Failed to process video: ' . $e->getMessage());
         }
-
     }
 }
