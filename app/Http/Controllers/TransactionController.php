@@ -101,7 +101,7 @@ class TransactionController extends Controller
 
         $snapToken = \Midtrans\Snap::getSnapToken($params);
         $transaction->snap_token = $snapToken;
-        $transaction->save;
+        $transaction->save();
 
         return response()->json(['status' => true, 'transaction' => $transaction, 'course' => $course, 'new' => true], 200);
     }
