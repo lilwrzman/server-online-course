@@ -34,6 +34,7 @@ class TransactionController extends Controller
         $course = Course::with(['items:id,course_id,type'])->findOrFail($request->input('course_id'));
         $existingTransaction = Transaction::where('user_id', $user->id)
                                           ->where('course_id', $request->input('course_id'))
+                                          ->orderBy('created_at', 'desc')
                                           ->first();
 
         \Midtrans\Config::$serverKey = config('midtrans.serverKey');
