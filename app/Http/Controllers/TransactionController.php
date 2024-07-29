@@ -58,26 +58,26 @@ class TransactionController extends Controller
                 }
 
                 return response()->json(['error' => 'You have already purchased this course'], 422);
+            }elseif($existingTransaction->status == 'pending'){
+                if (is_null($existingTransaction->snap_token)) {
+                    $params = [
+                        "transaction_details" => [
+                            "order_id" => "#" . hash('sha256', $existingTransaction->id),
+                            "gross_amount" => $course->price
+                        ],
+                        "customer_details" => [
+                            "first_name" => $user->info['fullname'],
+                            "email" => $user->email
+                        ]
+                    ];
+
+                    $snapToken = \Midtrans\Snap::getSnapToken($params);
+                    $existingTransaction->snap_token = $snapToken;
+                    $existingTransaction->save();
+                }
+
+                return response()->json(['status' => true, 'transaction' => $existingTransaction, 'course' => $course, 'new' => false], 200);
             }
-
-            if (is_null($existingTransaction->snap_token)) {
-                $params = [
-                    "transaction_details" => [
-                        "order_id" => "#" . $existingTransaction->id,
-                        "gross_amount" => $course->price
-                    ],
-                    "customer_details" => [
-                        "first_name" => $user->info['fullname'],
-                        "email" => $user->email
-                    ]
-                ];
-
-                $snapToken = \Midtrans\Snap::getSnapToken($params);
-                $existingTransaction->snap_token = $snapToken;
-                $existingTransaction->save();
-            }
-
-            return response()->json(['status' => true, 'transaction' => $existingTransaction, 'course' => $course, 'new' => false], 200);
         }
 
         $transaction = Transaction::create([
@@ -89,7 +89,7 @@ class TransactionController extends Controller
 
         $params = array(
             "transaction_details" => array(
-                "order_id" => "#" . $transaction->id,
+                "order_id" => "#" . hash('sha256', $existingTransaction->id),
                 "gross_amount" => $course->price
             ),
             "customer_details" => array(
@@ -161,6 +161,17 @@ class TransactionController extends Controller
         $transaction->save();
 
         return response()->json(['status' => true, 'message' => 'Pembelian materi ' . $course->title . ' pending!'], 200);
+    }
+
+    public function failed($id)
+    {
+        $user = Auth::user();
+        $transaction = Transaction::findOrFail($id);
+        $course = Course::findOrFail($transaction->course_id);
+        $transaction->status = 'failed';
+        $transaction->save();
+
+        return response()->json(['status' => true, 'message' => 'Pembelian materi ' . $course->title . ' gagal! Mohon coba kembali!'], 200);
     }
 
     public function transactionHistory(Request $request){

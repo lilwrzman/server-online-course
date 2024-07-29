@@ -155,6 +155,7 @@ Route::group([
     Route::post('/checkout/process', [TransactionController::class, 'process']); // 🟩
     Route::post('/checkout/success/{id}', [TransactionController::class, 'success']); // 🟩
     Route::post('/checkout/pending/{id}', [TransactionController::class, 'pending']); // 🟩
+    Route::post('/checkout/failed/{id}', [TransactionController::class, 'failed']); // 🟩
 });
 // End of Endpoint: Transaction
 
