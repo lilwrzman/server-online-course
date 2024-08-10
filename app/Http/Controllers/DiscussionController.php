@@ -21,7 +21,7 @@ class DiscussionController extends Controller
                                 ->select('id', 'user_id', 'course_id', 'parent_id', 'content', 'created_at')
                                 ->orderBy('created_at', 'desc')
                                 ->with([
-                                    'user:id,email,info,avatar,role',
+                                    'user:id,email,username,info,avatar,role',
                                     'replies' => function($query){
                                         $query->select('id', 'user_id', 'course_id', 'parent_id', 'content', 'created_at')
                                             ->with(['user:id,email,info,avatar,role']);
