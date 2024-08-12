@@ -22,7 +22,7 @@ class VerificationSuccessEmail extends Mailable
     public function __construct($user)
     {
         $this->user = $user;
-        $this->loginUrl = "http://localhost:5173?show=login";
+        $this->loginUrl = "https://online-course.pocari.id";
         $this->fullname = $this->user->info["fullname"];
     }
 
