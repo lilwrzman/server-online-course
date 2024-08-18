@@ -445,12 +445,6 @@ class CourseItemController extends Controller
         return response()->json(['status' => true, 'data' => $item]);
     }
 
-
-    public function update(Request $request, CourseItem $courseItem)
-    {
-        //
-    }
-
     public function deleteAssessment(Request $request)
     {
         $user = Auth::user();

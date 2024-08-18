@@ -102,7 +102,9 @@ class LearningPathController extends Controller
 
     public function show(Request $request, $id)
     {
-        $path = LearningPath::with('courses', 'courses.feedbacks')->findOrFail($id);
+        $path = LearningPath::with(['courses' => function($query) {
+            $query->orderBy('order', 'ASC');
+        }, 'courses.feedbacks'])->findOrFail($id);
 
         if($request->input('with_courses') == 'yes'){
             $path['lone_course'] = Course::whereNull('learning_path_id')->get();
